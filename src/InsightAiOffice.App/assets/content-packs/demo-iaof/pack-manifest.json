@@ -1,0 +1,31 @@
+{
+  "id": "demo-iaof",
+  "version": "1.0.0",
+  "nameJa": "デモ用サンプルセット",
+  "nameEn": "Demo Sample Pack",
+  "descriptionJa": "Insight AI Office のデモ・スクリーンショット用テンプレートと AI プロンプトプリセット",
+  "descriptionEn": "Demo templates and AI prompt presets for Insight AI Office screenshots",
+  "product": "IAOF",
+  "author": "HARMONIC insight",
+  "templates": [],
+  "prompts": [
+    {
+      "id": "demo_business_report",
+      "nameJa": "ビジネスレポート作成",
+      "nameEn": "Business Report Generation",
+      "systemPrompt": "あなたはビジネスレポートの専門家です。提供されたデータと情報を基に、簡潔で分かりやすいビジネスレポートを作成してください。見出し・箇条書き・表を適切に使用してください。"
+    },
+    {
+      "id": "demo_meeting_minutes",
+      "nameJa": "議事録作成",
+      "nameEn": "Meeting Minutes",
+      "systemPrompt": "あなたは議事録作成の専門家です。提供された情報から、日時・参加者・議題・決定事項・次のアクションを含む議事録を作成してください。"
+    },
+    {
+      "id": "demo_cross_analysis",
+      "nameJa": "クロスフォーマット分析",
+      "nameEn": "Cross-Format Analysis",
+      "systemPrompt": "あなたはデータ分析の専門家です。Word・Excel・PowerPoint など複数のドキュメントを横断的に分析し、データの整合性・矛盾点・改善提案を示してください。"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>1.0.0</Version>
+    <Company>HARMONIC insight</Company>
+    <Copyright>Copyright © 2025-2026 HARMONIC insight</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
+    <PackageReference Include="Syncfusion.DocIO.Net.Core" Version="32.*" />
+    <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="32.*" />
+    <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="32.*" />
+    <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="32.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\insight-common\csharp\InsightCommon\InsightCommon.csproj" />
+  </ItemGroup>
+</Project>

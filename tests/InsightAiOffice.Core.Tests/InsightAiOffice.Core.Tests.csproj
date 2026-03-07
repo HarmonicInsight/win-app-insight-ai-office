@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\InsightAiOffice.Core\InsightAiOffice.Core.csproj" />
+    <ProjectReference Include="..\..\src\InsightAiOffice.App\InsightAiOffice.App.csproj" />
+    <ProjectReference Include="..\..\src\InsightAiOffice.Data\InsightAiOffice.Data.csproj" />
+    <ProjectReference Include="..\..\insight-common\csharp\InsightCommon\InsightCommon.csproj" />
+  </ItemGroup>
+</Project>

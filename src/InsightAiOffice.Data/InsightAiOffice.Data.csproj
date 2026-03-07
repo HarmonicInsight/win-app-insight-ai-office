@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>1.0.0</Version>
+    <Company>HARMONIC insight</Company>
+    <Copyright>Copyright © 2025-2026 HARMONIC insight</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InsightAiOffice.Core\InsightAiOffice.Core.csproj" />
+    <ProjectReference Include="..\..\insight-common\csharp\InsightCommon\InsightCommon.csproj" />
+  </ItemGroup>
+</Project>

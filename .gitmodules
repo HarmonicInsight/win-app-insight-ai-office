@@ -1,0 +1,3 @@
+[submodule "insight-common"]
+	path = insight-common
+	url = C:/dev/cross-lib-insight-common

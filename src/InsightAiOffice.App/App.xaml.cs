@@ -16,7 +16,17 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Syncfusion 初期化 (ライセンス登録 + テーマ設定)
+        // Syncfusion ライセンス登録
+        // FindConfigPath は最大4階層上まで探索するが、src/ 配下のプロジェクトは
+        // bin/Debug/net8.0-windows/ から5階層上がリポジトリルートのため明示指定
+        var configPath = Path.GetFullPath(Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
+            "insight-common", "config", "third-party-licenses.json"));
+        InsightCommon.License.ThirdPartyLicenseProvider.RegisterSyncfusion("uiEdition",
+            File.Exists(configPath) ? configPath : null);
+
+        // Syncfusion テーマ初期化（ライセンスは上で登録済みだが Initialize 内の
+        // SfSkinManager.ApplyStylesOnApplication = false の設定が必要）
         InsightCommon.Theme.SyncfusionInitializer.Initialize();
 
         LanguageManager.SetLanguage("ja");

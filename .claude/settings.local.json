@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(git:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet run:*)",
+      "Bash(powershell:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(xargs grep:*)",
+      "Bash(timeout 20 dotnet run:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet package:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(ls /c/dev/win-app-insight-ai-office/tests/ 2>/dev/null || ls /c/dev/win-app-insight-ai-office/samples/ 2>/dev/null || find /c/dev/win-app-insight-ai-office -name \"*.pptx\" 2>/dev/null | head -5)",
+      "Bash(taskkill //IM InsightAiOffice.exe //F 2>/dev/null; sleep 2 && dotnet build 2>&1 | tail -5)",
+      "Bash(find /c/dev/win-app-insight-ai-office -path \"*/Syncfusion.Presentation*\" -name \"*.dll\" 2>/dev/null | head -10)",
+      "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null; sleep 1; dotnet build src/InsightAiOffice.App/InsightAiOffice.App.csproj 2>&1 | tail -5)",
+      "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null; sleep 1; rm -f src/InsightAiOffice.App/bin/Debug/net8.0-windows/trace.log src/InsightAiOffice.App/bin/Debug/net8.0-windows/debug_slide1.png)",
+      "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null; sleep 1; rm -f src/InsightAiOffice.App/bin/Debug/net8.0-windows/trace.log; dotnet build src/InsightAiOffice.App/InsightAiOffice.App.csproj 2>&1 | tail -3)",
+      "Bash(find /c/dev/win-app-insight-ai-office -type f -name \"*PptxService*\" -o -name \"*Presentation*\" 2>/dev/null | head -10)",
+      "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null; sleep 1; dotnet build src/InsightAiOffice.App/InsightAiOffice.App.csproj 2>&1 | tail -15)",
+      "Read(//c/dev/win-app-insight-ai-office/$APPDATA/HarmonicInsight/IAOF/**)",
+      "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null)",
+      "Bash(find \"C:\\\\dev\\\\win-app-insight-ai-office\" -name \"*.xaml\" -type f 2>/dev/null | head -20)"
+    ]
+  }
+}

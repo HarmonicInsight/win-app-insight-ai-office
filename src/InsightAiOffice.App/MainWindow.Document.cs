@@ -4,20 +4,19 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using Syncfusion.Windows.Controls.RichTextBoxAdv;
 using InsightAiOffice.App.ViewModels;
-using InsightAiOffice.Data.Repositories;
 
 namespace InsightAiOffice.App;
 
 public partial class MainWindow
 {
-    private ProjectArchiveAdapter? _currentProject;
-
     // ── Document Loading ──────────────────────────────────────────
 
     public void OpenFileByPath(string filePath)
     {
         if (!File.Exists(filePath)) return;
 
+        _recentFiles.Add(filePath);
+        RefreshRecentFilesList();
         _currentDocPath = filePath;
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         var fileName = Path.GetFileName(filePath);
@@ -26,9 +25,6 @@ public partial class MainWindow
 
         switch (ext)
         {
-            case ".iaof":
-                OpenProjectFile(filePath);
-                return;
             case ".docx" or ".doc":
                 OpenWordEditor(filePath, fileName);
                 break;
@@ -111,7 +107,7 @@ public partial class MainWindow
 
             _pptxThumbnails.Clear();
             _pptxFullSlides.Clear();
-            var slides = InsightCommon.Services.PresentationRenderingService.RenderAllSlides(filePath, 280);
+            var slides = Services.PptxService.RenderAllSlides(filePath, 280);
             foreach (var (full, thumb) in slides)
             {
                 _pptxFullSlides.Add(full);
@@ -150,92 +146,6 @@ public partial class MainWindow
         public BitmapSource? Thumbnail { get; set; }
         public string Label { get; set; } = "";
         public int Index { get; set; }
-    }
-
-    // ── .iaof Project File ──────────────────────────────────────────
-
-    private void OpenProjectFile(string iaofPath)
-    {
-        try
-        {
-            _currentProject?.Dispose();
-            var project = new ProjectArchiveAdapter();
-            project.Open(iaofPath);
-            _currentProject = project;
-
-            if (project.DocumentPath == null)
-            {
-                StatusText.Text = Helpers.LanguageManager.Get("Doc_ProjectNotFound");
-                return;
-            }
-
-            // Open the inner document
-            OpenFileByPath(project.DocumentPath);
-
-            // Override the path to the .iaof file
-            _currentDocPath = iaofPath;
-            var displayName = Path.GetFileName(iaofPath);
-            FileNameLabel.Text = displayName;
-
-            if (DataContext is MainViewModel vm)
-            {
-                vm.CurrentFilePath = iaofPath;
-                vm.DocumentTitle = displayName;
-            }
-
-            StatusText.Text = Helpers.LanguageManager.Format("Doc_ProjectOpened", displayName);
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"{Helpers.LanguageManager.Get("Error_Title")}: {ex.Message}";
-        }
-    }
-
-    private void SaveAsProject_Click(object sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrEmpty(_currentDocPath) || _activeEditorType == "")
-        {
-            StatusText.Text = Helpers.LanguageManager.Get("Doc_SaveFirst");
-            return;
-        }
-
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Filter = "IAOF Project|*.iaof",
-            DefaultExt = ".iaof",
-            FileName = Path.GetFileNameWithoutExtension(_currentDocPath) + ".iaof",
-        };
-
-        if (dialog.ShowDialog() != true) return;
-
-        try
-        {
-            // Save current document to temp first if it's a Word doc
-            var docPath = _currentDocPath;
-            if (_activeEditorType == "word" && !_currentDocPath.EndsWith(".iaof", StringComparison.OrdinalIgnoreCase))
-            {
-                docPath = Path.Combine(Path.GetTempPath(), "iaof_save_" + Path.GetFileName(_currentDocPath));
-                using var stream = File.Create(docPath);
-                RichTextEditor.Save(stream, FormatType.Docx);
-            }
-
-            ProjectArchiveAdapter.CreateFromDocument(docPath, dialog.FileName);
-            _currentDocPath = dialog.FileName;
-
-            var displayName = Path.GetFileName(dialog.FileName);
-            FileNameLabel.Text = displayName;
-            if (DataContext is MainViewModel vm)
-            {
-                vm.CurrentFilePath = dialog.FileName;
-                vm.DocumentTitle = displayName;
-            }
-
-            StatusText.Text = Helpers.LanguageManager.Format("Doc_ProjectSaved", displayName);
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"{Helpers.LanguageManager.Get("Error_Title")}: {ex.Message}";
-        }
     }
 
     private void CloseAllEditors()

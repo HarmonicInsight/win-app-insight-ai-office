@@ -8,10 +8,18 @@ public static class LanguageManager
         {
             // App
             ["App_Title"] = "Insight AI Office",
-            ["App_Tagline"] = "AI で仕事をする、新しい Office",
+            ["App_Tagline"] = "AIの民主化：誰もが業務でAIを使えるように",
 
             // Welcome
-            ["Welcome_Tagline"] = "Word・Excel・PowerPoint をAIと一緒に",
+            ["Welcome_Tagline"] = "AI の民主化：誰もが業務で AI を使えるように",
+            ["Welcome_EditTitle"] = "オフィスを編集する",
+            ["Welcome_EditDesc"] = "Word・Excel を直接編集\nPowerPoint・PDF を表示・操作",
+            ["Welcome_CreateTitle"] = "新しい資料を作る",
+            ["Welcome_CreateDesc"] = "AI が要約・分析・翻訳して\nレポート・グラフ・表を自動生成",
+            ["Welcome_OpenLabel"] = "ファイルを開いて編集する",
+            ["Welcome_OpenDesc"] = ".docx / .xlsx / .pptx / .pdf を開いて AI と一緒に作業",
+            ["Welcome_ChatLabel"] = "AI コンシェルジュで資料を作成",
+            ["Welcome_ChatDescNew"] = "要約・分析・翻訳 → レポート・グラフ・表を自動生成",
             ["Welcome_Start"] = "はじめに",
             ["Welcome_OpenChat"] = "AI チャットを開く",
             ["Welcome_ChatDesc"] = "ドキュメント生成・分析・質問応答",
@@ -141,7 +149,7 @@ public static class LanguageManager
             // Prompt Editor
             ["PE_Title"] = "プロンプトエディタ",
             ["PE_Presets"] = "プリセット",
-            ["PE_Custom"] = "カスタム",
+            ["PE_Custom"] = "マイプロンプト",
             ["PE_Name"] = "名前",
             ["PE_Category"] = "カテゴリ",
             ["PE_Model"] = "モデル",
@@ -160,9 +168,9 @@ public static class LanguageManager
             ["PE_ExportSuccess"] = "{0} 件のプロンプトをエクスポートしました。",
             ["PE_ImportEmpty"] = "インポートできるプロンプトがありませんでした。",
             ["PE_ImportSuccess"] = "{0} 件のプロンプトをインポートしました。（{1} 件は重複スキップ）",
-            ["PE_Customize"] = "カスタム登録",
-            ["PE_CustomizeTooltip"] = "プリセットを修正してカスタムプロンプトとして登録",
-            ["PE_CustomSuffix"] = "カスタム",
+            ["PE_Customize"] = "マイプロンプト登録",
+            ["PE_CustomizeTooltip"] = "プリセットを修正してマイプロンプトとして登録",
+            ["PE_CustomSuffix"] = "マイプロンプト",
 
             // Backstage
             ["BS_Open"] = "開く",
@@ -272,7 +280,15 @@ public static class LanguageManager
             ["App_Tagline"] = "The New Office — Work with AI",
 
             // Welcome
-            ["Welcome_Tagline"] = "Word, Excel & PowerPoint — powered by AI",
+            ["Welcome_Tagline"] = "Democratizing AI: Empowering Everyone to Use AI at Work",
+            ["Welcome_EditTitle"] = "Edit Office Documents",
+            ["Welcome_EditDesc"] = "Edit Word & Excel directly\nView PowerPoint & PDF",
+            ["Welcome_CreateTitle"] = "Create New Materials",
+            ["Welcome_CreateDesc"] = "AI summarizes, analyzes & translates\nAuto-generates reports, charts & tables",
+            ["Welcome_OpenLabel"] = "Open & Edit Files",
+            ["Welcome_OpenDesc"] = "Open .docx / .xlsx / .pptx / .pdf and work with AI",
+            ["Welcome_ChatLabel"] = "Create with AI Concierge",
+            ["Welcome_ChatDescNew"] = "Summarize, analyze, translate → auto-generate reports, charts & tables",
             ["Welcome_Start"] = "Get Started",
             ["Welcome_OpenChat"] = "Open AI Chat",
             ["Welcome_ChatDesc"] = "Document generation, analysis & Q&A",
@@ -402,7 +418,7 @@ public static class LanguageManager
             // Prompt Editor
             ["PE_Title"] = "Prompt Editor",
             ["PE_Presets"] = "Presets",
-            ["PE_Custom"] = "Custom",
+            ["PE_Custom"] = "My Prompts",
             ["PE_Name"] = "Name",
             ["PE_Category"] = "Category",
             ["PE_Model"] = "Model",
@@ -421,7 +437,7 @@ public static class LanguageManager
             ["PE_ExportSuccess"] = "{0} prompts exported.",
             ["PE_ImportEmpty"] = "No prompts found to import.",
             ["PE_ImportSuccess"] = "{0} prompts imported. ({1} duplicates skipped)",
-            ["PE_Customize"] = "Save as Custom",
+            ["PE_Customize"] = "Save as My Prompt",
             ["PE_CustomizeTooltip"] = "Save this preset as a custom prompt for editing",
             ["PE_CustomSuffix"] = "Custom",
 

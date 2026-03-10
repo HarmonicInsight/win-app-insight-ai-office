@@ -47,7 +47,7 @@ public partial class DocumentToolExecutor
         // Remove tool-call JSON blocks from the displayed response
         var cleaned = ToolBlockRegex().Replace(aiResponse, "").Trim();
         if (string.IsNullOrWhiteSpace(cleaned))
-            cleaned = $"[{executed} 件のドキュメント操作を実行しました]";
+            cleaned = Helpers.LanguageManager.Format("AI_ToolExecuted", executed);
 
         return (cleaned, executed);
     }

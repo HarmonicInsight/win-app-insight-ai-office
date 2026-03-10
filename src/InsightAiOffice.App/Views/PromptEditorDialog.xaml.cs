@@ -82,42 +82,7 @@ public partial class PromptEditorDialog : Window
 
         var allPresets = _presetService.LoadAll();
 
-        // Built-in presets grouped by category
-        var presetHeader = new TreeViewItem
-        {
-            Header = L("PE_Presets"),
-            IsExpanded = true,
-            FontWeight = FontWeights.SemiBold,
-            FontSize = 12,
-        };
-
-        var builtIn = allPresets.Where(p => p.Id.StartsWith("builtin_", StringComparison.Ordinal)).ToList();
-        var categories = builtIn.Select(p => p.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct();
-
-        foreach (var category in categories)
-        {
-            var catItem = new TreeViewItem
-            {
-                Header = category,
-                IsExpanded = false,
-                FontWeight = FontWeights.Normal,
-                FontSize = 11,
-            };
-            foreach (var preset in builtIn.Where(p => p.Category == category))
-            {
-                catItem.Items.Add(new TreeViewItem
-                {
-                    Header = preset.Name,
-                    Tag = preset,
-                    FontWeight = FontWeights.Normal,
-                    FontSize = 11,
-                });
-            }
-            presetHeader.Items.Add(catItem);
-        }
-        PromptTree.Items.Add(presetHeader);
-
-        // Custom prompts
+        // My Prompts (custom) — displayed first
         var customHeader = new TreeViewItem
         {
             Header = L("PE_Custom"),
@@ -140,6 +105,73 @@ public partial class PromptEditorDialog : Window
             });
         }
         PromptTree.Items.Add(customHeader);
+
+        // Built-in presets grouped by product → subcategory
+        var builtIn = allPresets.Where(p => p.Id.StartsWith("builtin_", StringComparison.Ordinal)).ToList();
+
+        // カテゴリを「製品グループ : サブカテゴリ」に分離
+        // 例: "📊 Slide: 品質レビュー" → group="📊 Slide", sub="品質レビュー"
+        // 例: "分析・要約" → group="Office 共通", sub="分析・要約"
+        var grouped = builtIn
+            .GroupBy(p =>
+            {
+                var cat = p.Category ?? "";
+                var colonIdx = cat.IndexOf(':');
+                if (colonIdx > 0 && (cat.StartsWith("📊") || cat.StartsWith("📄") || cat.StartsWith("📗")))
+                    return cat[..colonIdx].Trim();
+                return "Office 共通";
+            })
+            .OrderBy(g => g.Key switch
+            {
+                "Office 共通" => 0,
+                _ when g.Key.StartsWith("📄") => 1,
+                _ when g.Key.StartsWith("📗") => 2,
+                _ when g.Key.StartsWith("📊") => 3,
+                _ => 4,
+            });
+
+        foreach (var productGroup in grouped)
+        {
+            var productItem = new TreeViewItem
+            {
+                Header = productGroup.Key,
+                IsExpanded = false,
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12,
+            };
+
+            var subGroups = productGroup
+                .GroupBy(p =>
+                {
+                    var cat = p.Category ?? "";
+                    var colonIdx = cat.IndexOf(':');
+                    return colonIdx > 0 ? cat[(colonIdx + 1)..].Trim() : cat;
+                })
+                .OrderBy(g => g.Key);
+
+            foreach (var sub in subGroups)
+            {
+                var subItem = new TreeViewItem
+                {
+                    Header = sub.Key,
+                    IsExpanded = false,
+                    FontWeight = FontWeights.Normal,
+                    FontSize = 11,
+                };
+                foreach (var preset in sub)
+                {
+                    subItem.Items.Add(new TreeViewItem
+                    {
+                        Header = preset.Name,
+                        Tag = preset,
+                        FontWeight = FontWeights.Normal,
+                        FontSize = 11,
+                    });
+                }
+                productItem.Items.Add(subItem);
+            }
+            PromptTree.Items.Add(productItem);
+        }
     }
 
     private void PromptTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -293,31 +325,26 @@ public partial class PromptEditorDialog : Window
 
     private void SelectPresetInTree(string id)
     {
-        foreach (TreeViewItem root in PromptTree.Items)
+        static bool TrySelect(ItemCollection items, string targetId)
         {
-            foreach (object child in root.Items)
+            foreach (object item in items)
             {
-                if (child is TreeViewItem tvi && tvi.Tag is UserPromptPreset p && p.Id == id)
+                if (item is not TreeViewItem tvi) continue;
+                if (tvi.Tag is UserPromptPreset p && p.Id == targetId)
                 {
                     tvi.IsSelected = true;
                     tvi.BringIntoView();
-                    return;
+                    return true;
                 }
-                if (child is TreeViewItem catItem)
+                if (tvi.Items.Count > 0 && TrySelect(tvi.Items, targetId))
                 {
-                    foreach (object grandchild in catItem.Items)
-                    {
-                        if (grandchild is TreeViewItem gvi && gvi.Tag is UserPromptPreset gp && gp.Id == id)
-                        {
-                            catItem.IsExpanded = true;
-                            gvi.IsSelected = true;
-                            gvi.BringIntoView();
-                            return;
-                        }
-                    }
+                    tvi.IsExpanded = true;
+                    return true;
                 }
             }
+            return false;
         }
+        TrySelect(PromptTree.Items, id);
     }
 
     // ── Export / Import ──

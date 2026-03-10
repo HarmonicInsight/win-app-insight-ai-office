@@ -46,8 +46,11 @@ public partial class MainWindow
 
     private void OnFileDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
-            OpenFileByPath(files[0]);
+        if (e.Data.GetData(DataFormats.FileDrop) is string[] files)
+        {
+            foreach (var file in files)
+                OpenFileByPath(file);
+        }
     }
 
     // ── Right Panel Toggle (AI Chat) ─────────────────────────────
@@ -99,8 +102,22 @@ public partial class MainWindow
     private void RefreshRecentFilesList()
     {
         var entries = _recentFiles.Entries;
+        var vis = entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
         RecentFilesList.ItemsSource = entries;
-        RecentFilesEmptyHint.Visibility = entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        RecentFilesEmptyHint.Visibility = vis;
+
+        WordRecentFilesList.ItemsSource = entries;
+        WordRecentEmptyHint.Visibility = vis;
+
+        ExcelRecentFilesList.ItemsSource = entries;
+        ExcelRecentEmptyHint.Visibility = vis;
+
+        PptxRecentFilesList.ItemsSource = entries;
+        PptxRecentEmptyHint.Visibility = vis;
+
+        PdfRecentFilesList.ItemsSource = entries;
+        PdfRecentEmptyHint.Visibility = vis;
     }
 
     private void RecentFile_Click(object sender, RoutedEventArgs e)
@@ -128,7 +145,7 @@ public partial class MainWindow
 
     private void ShowLicenseDialog()
     {
-        var contentPackManager = new InsightCommon.TemplatePack.ContentPackManager(
+        using var contentPackManager = new InsightCommon.TemplatePack.ContentPackManager(
             "IAOF", Path.Combine(AppContext.BaseDirectory, "assets", "content-packs"), "1.0.0");
         var isJa = Helpers.LanguageManager.CurrentLanguage == "ja";
         var dialog = new InsightCommon.UI.InsightLicenseDialog(new InsightCommon.UI.LicenseDialogOptions
@@ -163,7 +180,6 @@ public partial class MainWindow
         });
         dialog.Owner = this;
         dialog.ShowDialog();
-        contentPackManager.Dispose();
     }
 
     private void UpdatePlanBadge()
@@ -188,7 +204,21 @@ public partial class MainWindow
     private void UpdateLicenseBackstage()
     {
         var license = _licenseManager.CurrentLicense;
-        LicensePlanText.Text = license.PlanDisplayName;
-        LicenseExpiryText.Text = license.Plan == PlanCode.Free ? "" : Helpers.LanguageManager.Format("Doc_Expire", license.ExpiresAt ?? (object)"—");
+        var planName = license.PlanDisplayName;
+        var expiry = license.Plan == PlanCode.Free ? "" : Helpers.LanguageManager.Format("Doc_Expire", license.ExpiresAt ?? (object)"—");
+
+        SetLicenseDisplay(LicensePlanText, LicenseExpiryText, planName, expiry);
+        SetLicenseDisplay(WordLicensePlanText, WordLicenseExpiryText, planName, expiry);
+        SetLicenseDisplay(ExcelLicensePlanText, ExcelLicenseExpiryText, planName, expiry);
+        SetLicenseDisplay(PptxLicensePlanText, PptxLicenseExpiryText, planName, expiry);
+    }
+
+    private static void SetLicenseDisplay(
+        System.Windows.Controls.TextBlock planText,
+        System.Windows.Controls.TextBlock expiryText,
+        string planName, string expiry)
+    {
+        planText.Text = planName;
+        expiryText.Text = expiry;
     }
 }

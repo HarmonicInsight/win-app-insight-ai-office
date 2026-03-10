@@ -11,15 +11,16 @@ namespace InsightAiOffice.App.Services;
 
 /// <summary>
 /// PPTX サービス。
-/// OpenXML でスライド数・テキスト抽出を行い、
-/// Syncfusion が利用可能ならレンダリング・スライド操作も提供。
+/// Syncfusion をリフレクション経由で利用（Base/Portable 型競合を回避）。
+/// OpenXML はテキスト抽出とフォールバックに使用。
 /// </summary>
 public static class PptxService
 {
     private static Type? _presentationType;
     private static MethodInfo? _openMethod;
+    private static MethodInfo? _convertToImageMethod;
     private static object? _imageTypeBitmap;
-    private static Type? _slideLayoutType;
+    private static object? _slideLayoutBlank;
     private static bool _resolved;
     private static bool _canRender;
 
@@ -31,8 +32,7 @@ public static class PptxService
         var results = new List<(BitmapSource, BitmapSource)>();
         if (!File.Exists(pptxPath)) return results;
 
-        // Syncfusion レンダリングを試行
-        if (EnsureSyncfusionResolved() && _canRender)
+        if (EnsureResolved() && _canRender)
         {
             try
             {
@@ -40,11 +40,10 @@ public static class PptxService
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[PptxService] Syncfusion render failed, falling back to OpenXML: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PptxService] Syncfusion render failed: {ex.Message}");
             }
         }
 
-        // フォールバック: OpenXML でスライド数を取得し、テキスト付きプレースホルダーを生成
         return RenderAllSlidesOpenXml(pptxPath, thumbnailWidth);
     }
 
@@ -54,26 +53,61 @@ public static class PptxService
         var results = new List<(BitmapSource, BitmapSource)>();
 
         using var stream = new FileStream(pptxPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        dynamic presentation = _openMethod!.Invoke(null, [stream])!;
+        var presentation = _openMethod!.Invoke(null, [stream])!;
 
         try
         {
+            // Get Slides collection via reflection (avoids dynamic dispatch issues)
+            var slidesObj = presentation.GetType().GetProperty("Slides")?.GetValue(presentation);
+            if (slidesObj == null) return results;
+
+            var slidesEnumerable = (System.Collections.IEnumerable)slidesObj;
             int index = 0;
-            foreach (var slide in presentation.Slides)
+
+            foreach (var slide in slidesEnumerable)
             {
                 index++;
                 try
                 {
-                    System.Drawing.Image image = slide.ConvertToImage(_imageTypeBitmap);
-                    using (image)
+                    // Use cached ConvertToImage MethodInfo — avoids dynamic dispatch
+                    // which fails with extension methods and type-ambiguous enum parameters
+                    var convertMethod = _convertToImageMethod;
+                    if (convertMethod == null)
                     {
-                        var full = ConvertToBitmapSource(image, 0) ?? CreatePlaceholder(960, 540, index, null);
-                        var thumb = ConvertToBitmapSource(image, thumbnailWidth) ?? CreatePlaceholder(280, 158, index, null);
-                        results.Add((full, thumb));
+                        // Find ConvertToImage on the concrete slide type
+                        var slideType = slide.GetType();
+                        convertMethod = slideType.GetMethod("ConvertToImage");
+                        if (convertMethod == null)
+                        {
+                            // Try interface types
+                            foreach (var iface in slideType.GetInterfaces())
+                            {
+                                convertMethod = iface.GetMethod("ConvertToImage");
+                                if (convertMethod != null) break;
+                            }
+                        }
+                        _convertToImageMethod = convertMethod;
+                    }
+
+                    if (convertMethod != null)
+                    {
+                        var image = (System.Drawing.Image)convertMethod.Invoke(slide, [_imageTypeBitmap])!;
+                        using (image)
+                        {
+                            var full = ConvertToBitmapSource(image, 0) ?? CreatePlaceholder(960, 540, index, null);
+                            var thumb = ConvertToBitmapSource(image, thumbnailWidth) ?? CreatePlaceholder(280, 158, index, null);
+                            results.Add((full, thumb));
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[PptxService] ConvertToImage method not found on {slide.GetType().FullName}");
+                        results.Add((CreatePlaceholder(960, 540, index, null), CreatePlaceholder(280, 158, index, null)));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[PptxService] Slide {index} render error: {ex.Message}");
                     results.Add((CreatePlaceholder(960, 540, index, null), CreatePlaceholder(280, 158, index, null)));
                 }
             }
@@ -144,8 +178,6 @@ public static class PptxService
     public static int GetSlideCount(string pptxPath)
     {
         if (!File.Exists(pptxPath)) return 0;
-
-        // OpenXML でカウント（常に動作する）
         try
         {
             using var doc = PresentationDocument.Open(pptxPath, false);
@@ -159,7 +191,7 @@ public static class PptxService
 
     public static void ConvertToPdf(string pptxPath, string outputPath)
     {
-        if (!EnsureSyncfusionResolved())
+        if (!EnsureResolved())
             throw new InvalidOperationException("Syncfusion Presentation not available");
 
         using var stream = new FileStream(pptxPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -190,8 +222,7 @@ public static class PptxService
     {
         WithPresentation(pptxPath, (presentation, stream) =>
         {
-            var blankLayout = Enum.Parse(_slideLayoutType!, "Blank");
-            presentation.Slides.Add(blankLayout);
+            presentation.Slides.Add(_slideLayoutBlank);
 
             int count = presentation.Slides.Count;
             if (afterSlideIndex + 1 < count - 1)
@@ -206,10 +237,8 @@ public static class PptxService
         WithPresentation(pptxPath, (presentation, stream) =>
         {
             if (slideIndex < 0 || slideIndex >= presentation.Slides.Count) return;
-
             var slide = presentation.Slides[slideIndex].Clone();
             presentation.Slides.Insert(slideIndex + 1, slide);
-
             SavePresentation(presentation, stream);
         });
     }
@@ -220,9 +249,7 @@ public static class PptxService
         {
             if (presentation.Slides.Count <= 1) return;
             if (slideIndex < 0 || slideIndex >= presentation.Slides.Count) return;
-
             presentation.Slides.RemoveAt(slideIndex);
-
             SavePresentation(presentation, stream);
         });
     }
@@ -233,9 +260,7 @@ public static class PptxService
         {
             if (fromIndex < 0 || fromIndex >= presentation.Slides.Count) return;
             if (toIndex < 0 || toIndex >= presentation.Slides.Count) return;
-
             presentation.Slides.MoveTo(fromIndex, toIndex);
-
             SavePresentation(presentation, stream);
         });
     }
@@ -244,7 +269,7 @@ public static class PptxService
 
     private static void WithPresentation(string pptxPath, Action<dynamic, FileStream> action)
     {
-        if (!EnsureSyncfusionResolved()) return;
+        if (!EnsureResolved()) return;
 
         using var stream = new FileStream(pptxPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         dynamic presentation = _openMethod!.Invoke(null, [stream])!;
@@ -288,17 +313,13 @@ public static class PptxService
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
         {
-            // 背景
             dc.DrawRectangle(
                 new SolidColorBrush(Color.FromRgb(245, 245, 245)), null,
                 new Rect(0, 0, width, height));
-
-            // 枠線
             dc.DrawRectangle(null,
                 new Pen(new SolidColorBrush(Color.FromRgb(220, 220, 220)), 1),
                 new Rect(0, 0, width, height));
 
-            // スライド番号
             var titleSize = width > 400 ? 24.0 : 14.0;
             dc.DrawText(
                 new FormattedText($"Slide {slideNumber}",
@@ -308,7 +329,6 @@ public static class PptxService
                     new SolidColorBrush(Color.FromRgb(100, 100, 100)), 96),
                 new Point(width > 400 ? 24 : 8, width > 400 ? 16 : 6));
 
-            // テキストプレビュー
             if (!string.IsNullOrEmpty(previewText))
             {
                 var textSize = width > 400 ? 14.0 : 9.0;
@@ -334,65 +354,52 @@ public static class PptxService
 
     // ── Syncfusion リフレクション解決 ──
 
-    private static bool EnsureSyncfusionResolved()
+    private static bool EnsureResolved()
     {
         if (_resolved) return _presentationType != null && _openMethod != null;
         _resolved = true;
 
         try
         {
-            // アセンブリがまだロードされていない場合、明示的にロードを試みる
             TryLoadAssembly("Syncfusion.Presentation.Base");
-            TryLoadAssembly("Syncfusion.Presentation.WPF");
 
-            // Presentation 型を探す
             _presentationType = FindType("Syncfusion.Presentation.Presentation", "Syncfusion.Presentation.Base");
-            _presentationType ??= FindType("Syncfusion.Presentation.Presentation", "Syncfusion.Presentation.WPF");
             _presentationType ??= FindType("Syncfusion.Presentation.Presentation");
-            if (_presentationType == null)
-            {
-                System.Diagnostics.Debug.WriteLine("[PptxService] Presentation type not found. Loaded assemblies:");
-                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    if (asm.GetName().Name?.Contains("Syncfusion") == true)
-                        System.Diagnostics.Debug.WriteLine($"  - {asm.GetName().Name}");
-                }
-                return false;
-            }
+            if (_presentationType == null) return false;
 
             _openMethod = _presentationType.GetMethod("Open", [typeof(Stream)]);
-            if (_openMethod == null)
-            {
-                System.Diagnostics.Debug.WriteLine("[PptxService] Open(Stream) method not found on Presentation type");
-                return false;
-            }
+            if (_openMethod == null) return false;
 
-            // ImageType.Bitmap（レンダリング用、なくても開くことは可能）
+            // ImageType.Bitmap — try multiple possible namespaces
             var imageType = FindType("Syncfusion.Drawing.ImageType", "Syncfusion.Presentation.Base");
-            imageType ??= FindType("Syncfusion.Drawing.ImageType", "Syncfusion.Presentation.WPF");
             imageType ??= FindType("Syncfusion.Drawing.ImageType");
             imageType ??= FindType("Syncfusion.Presentation.ImageType");
             if (imageType != null && imageType.IsEnum)
             {
                 _imageTypeBitmap = Enum.Parse(imageType, "Bitmap");
+
+                // Pre-resolve ConvertToImage from ISlide interface
+                var slideType = FindType("Syncfusion.Presentation.ISlide", "Syncfusion.Presentation.Base");
+                slideType ??= FindType("Syncfusion.Presentation.ISlide");
+                if (slideType != null)
+                {
+                    _convertToImageMethod = slideType.GetMethod("ConvertToImage", [imageType]);
+                    _convertToImageMethod ??= slideType.GetMethod("ConvertToImage");
+                }
+
                 _canRender = true;
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("[PptxService] ImageType enum not found — rendering disabled, using placeholders");
-                _canRender = false;
-            }
 
-            // SlideLayoutType
-            _slideLayoutType = FindType("Syncfusion.Presentation.SlideLayoutType", "Syncfusion.Presentation.Base");
-            _slideLayoutType ??= FindType("Syncfusion.Presentation.SlideLayoutType", "Syncfusion.Presentation.WPF");
-            _slideLayoutType ??= FindType("Syncfusion.Presentation.SlideLayoutType");
+            // SlideLayoutType.Blank
+            var slideLayoutType = FindType("Syncfusion.Presentation.SlideLayoutType", "Syncfusion.Presentation.Base");
+            slideLayoutType ??= FindType("Syncfusion.Presentation.SlideLayoutType");
+            if (slideLayoutType != null && slideLayoutType.IsEnum)
+                _slideLayoutBlank = Enum.Parse(slideLayoutType, "Blank");
 
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"[PptxService] Resolve error: {ex.Message}");
             return false;
         }
     }
@@ -401,17 +408,11 @@ public static class PptxService
     {
         try
         {
-            // 既にロード済みか確認
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
                 if (asm.GetName().Name == assemblyName) return;
-            }
             Assembly.Load(assemblyName);
         }
-        catch
-        {
-            // ロード失敗は無視（FindType のフォールバックに任せる）
-        }
+        catch { }
     }
 
     private static Type? FindType(string typeName, string? preferredAssembly = null)

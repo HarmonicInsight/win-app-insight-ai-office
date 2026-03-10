@@ -40,10 +40,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "All Supported|*.iaof;*.docx;*.doc;*.xlsx;*.xls;*.csv;*.pptx;*.ppt|" +
+            Filter = "All Supported|*.iaof;*.docx;*.doc;*.xlsx;*.xls;*.csv;*.pptx;*.ppt;*.pdf|" +
                      "IAOF Project|*.iaof|" +
                      "Word|*.docx;*.doc|Excel|*.xlsx;*.xls;*.csv|PowerPoint|*.pptx;*.ppt|" +
-                     "All Files|*.*",
+                     "PDF|*.pdf|All Files|*.*",
         };
 
         if (dialog.ShowDialog() != true) return;

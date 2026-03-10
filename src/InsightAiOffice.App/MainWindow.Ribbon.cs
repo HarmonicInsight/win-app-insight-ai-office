@@ -34,50 +34,50 @@ public partial class MainWindow
         catch { StatusText.Text = LanguageManager.Get("Hint_RedoUnavailable"); }
     }
 
+    // ── Helpers ────────────────────────────────────────────────────
+
+    /// <summary>Word 文字書式を安全に適用する共通ヘルパー</summary>
+    private void ApplyWordCharFormat(Action<SelectionCharacterFormat> action)
+    {
+        if (_activeEditorType != "word") return;
+        var cf = RichTextEditor.Selection?.CharacterFormat;
+        if (cf != null) action(cf);
+    }
+
+    /// <summary>Excel 選択範囲に対する操作を安全に実行する共通ヘルパー</summary>
+    private void WithExcelRange(Action<dynamic> action)
+    {
+        try
+        {
+            var ws = Spreadsheet?.ActiveSheet;
+            var sel = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
+            if (ws == null || sel == null) return;
+            var r = ws.Range[sel.Top, sel.Left, sel.Bottom, sel.Right];
+            action(r);
+            Spreadsheet?.ActiveGrid?.InvalidateCells();
+        }
+        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
+    }
+
     // ── Ribbon Format Commands ───────────────────────────────────
 
-    private void FormatBold_Click(object sender, RoutedEventArgs e)
-    {
-        if (_activeEditorType == "word" && RichTextEditor.Selection != null)
-        {
-            var cf = RichTextEditor.Selection.CharacterFormat;
-            if (cf != null) cf.Bold = cf.Bold != true;
-        }
-    }
+    private void FormatBold_Click(object sender, RoutedEventArgs e) =>
+        ApplyWordCharFormat(cf => cf.Bold = cf.Bold != true);
 
-    private void FormatItalic_Click(object sender, RoutedEventArgs e)
-    {
-        if (_activeEditorType == "word" && RichTextEditor.Selection != null)
-        {
-            var cf = RichTextEditor.Selection.CharacterFormat;
-            if (cf != null) cf.Italic = cf.Italic != true;
-        }
-    }
+    private void FormatItalic_Click(object sender, RoutedEventArgs e) =>
+        ApplyWordCharFormat(cf => cf.Italic = cf.Italic != true);
 
-    private void FormatUnderline_Click(object sender, RoutedEventArgs e)
-    {
-        if (_activeEditorType == "word" && RichTextEditor.Selection != null)
-        {
-            var cf = RichTextEditor.Selection.CharacterFormat;
-            if (cf != null)
-                cf.Underline = cf.Underline == Underline.Single ? Underline.None : Underline.Single;
-        }
-    }
+    private void FormatUnderline_Click(object sender, RoutedEventArgs e) =>
+        ApplyWordCharFormat(cf => cf.Underline = cf.Underline == Underline.Single ? Underline.None : Underline.Single);
 
     private void FindReplace_Click(object sender, RoutedEventArgs e)
     {
         StatusText.Text = LanguageManager.Get("Hint_FindReplace");
     }
 
-    private void FormatStrikethrough_Click(object sender, RoutedEventArgs e)
-    {
-        if (_activeEditorType == "word" && RichTextEditor.Selection != null)
-        {
-            var cf = RichTextEditor.Selection.CharacterFormat;
-            if (cf != null) cf.StrikeThrough = cf.StrikeThrough != StrikeThrough.SingleStrike
-                ? StrikeThrough.SingleStrike : StrikeThrough.None;
-        }
-    }
+    private void FormatStrikethrough_Click(object sender, RoutedEventArgs e) =>
+        ApplyWordCharFormat(cf => cf.StrikeThrough = cf.StrikeThrough != StrikeThrough.SingleStrike
+            ? StrikeThrough.SingleStrike : StrikeThrough.None);
 
     private void WordBulletList_Click(object sender, RoutedEventArgs e)
     {
@@ -108,22 +108,14 @@ public partial class MainWindow
 
     // ── Word Paragraph Commands ───────────────────────────────────
 
-    private void WordAlignLeft_Click(object sender, RoutedEventArgs e)
-    {
-        if (RichTextEditor.Selection?.ParagraphFormat != null)
-            RichTextEditor.Selection.ParagraphFormat.TextAlignment = TextAlignment.Left;
-    }
+    private void WordAlignLeft_Click(object sender, RoutedEventArgs e) => SetWordAlignment(TextAlignment.Left);
+    private void WordAlignCenter_Click(object sender, RoutedEventArgs e) => SetWordAlignment(TextAlignment.Center);
+    private void WordAlignRight_Click(object sender, RoutedEventArgs e) => SetWordAlignment(TextAlignment.Right);
 
-    private void WordAlignCenter_Click(object sender, RoutedEventArgs e)
+    private void SetWordAlignment(TextAlignment alignment)
     {
         if (RichTextEditor.Selection?.ParagraphFormat != null)
-            RichTextEditor.Selection.ParagraphFormat.TextAlignment = TextAlignment.Center;
-    }
-
-    private void WordAlignRight_Click(object sender, RoutedEventArgs e)
-    {
-        if (RichTextEditor.Selection?.ParagraphFormat != null)
-            RichTextEditor.Selection.ParagraphFormat.TextAlignment = TextAlignment.Right;
+            RichTextEditor.Selection.ParagraphFormat.TextAlignment = alignment;
     }
 
     // ── Excel Ribbon Commands ─────────────────────────────────────
@@ -146,33 +138,11 @@ public partial class MainWindow
         catch (InvalidOperationException) { StatusText.Text = LanguageManager.Get("Hint_Paste"); }
     }
 
-    private void ExcelBold_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            r.CellStyle.Font.Bold = !r.CellStyle.Font.Bold;
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
-        }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    private void ExcelBold_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => r.CellStyle.Font.Bold = !r.CellStyle.Font.Bold);
 
-    private void ExcelItalic_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            r.CellStyle.Font.Italic = !r.CellStyle.Font.Italic;
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
-        }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    private void ExcelItalic_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => r.CellStyle.Font.Italic = !r.CellStyle.Font.Italic);
 
     private void ExcelUnderline_Click(object sender, RoutedEventArgs e)
     {
@@ -185,72 +155,30 @@ public partial class MainWindow
     private void ExcelPercent_Click(object sender, RoutedEventArgs e) => SetExcelFormat("percent");
     private void ExcelComma_Click(object sender, RoutedEventArgs e) => SetExcelFormat("comma");
 
-    private void ExcelMergeCells_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            if (r.MergeArea != null)
-                r.UnMerge();
-            else
-                r.Merge();
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
-        }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    private void ExcelMergeCells_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => { if (r.MergeArea != null) r.UnMerge(); else r.Merge(); });
 
-    private void ExcelWrapText_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            r.CellStyle.WrapText = !r.CellStyle.WrapText;
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
-        }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    private void ExcelWrapText_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => r.CellStyle.WrapText = !r.CellStyle.WrapText);
 
-    private void ExcelBorders_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            r.BorderAround();
-            r.BorderInside();
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
-            StatusText.Text = LanguageManager.Get("Hint_BordersApplied");
-        }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    private void ExcelBorders_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => { r.BorderAround(); r.BorderInside(); StatusText.Text = LanguageManager.Get("Hint_BordersApplied"); });
 
     private void ExcelFreezePanes_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             var ws = Spreadsheet?.ActiveSheet;
-            if (ws == null) return;
-            var grid = Spreadsheet?.ActiveGrid;
-            if (grid == null) return;
-            var range = grid.SelectedRanges?.ActiveRange;
-            if (range != null && (range.Top > 1 || range.Left > 1))
+            var sel = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
+            if (ws == null || sel == null) { StatusText.Text = LanguageManager.Get("Hint_SelectCellToFreeze"); return; }
+            if (sel.Top > 1 || sel.Left > 1)
             {
-                ws.Range[range.Top, range.Left].FreezePanes();
+                ws.Range[sel.Top, sel.Left].FreezePanes();
                 Spreadsheet?.ActiveGrid?.InvalidateCells();
                 StatusText.Text = LanguageManager.Get("Hint_FrozenPanes");
             }
             else
-            {
                 StatusText.Text = LanguageManager.Get("Hint_SelectCellToFreeze");
-            }
         }
         catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
     }
@@ -259,39 +187,30 @@ public partial class MainWindow
     private void ExcelDecimalInc_Click(object sender, RoutedEventArgs e) => SetExcelFormat("dec-inc");
     private void ExcelDecimalDec_Click(object sender, RoutedEventArgs e) => SetExcelFormat("dec-dec");
 
-    private void SetExcelFormat(string action)
+    private void SetExcelFormat(string action) => WithExcelRange(r =>
     {
-        try
+        switch (action)
         {
-            var ws = Spreadsheet?.ActiveSheet;
-            var range = Spreadsheet?.ActiveGrid?.SelectedRanges?.ActiveRange;
-            if (ws == null || range == null) return;
-            var r = ws.Range[range.Top, range.Left, range.Bottom, range.Right];
-            switch (action)
-            {
-                case "percent": r.NumberFormat = "0%"; break;
-                case "comma": r.NumberFormat = "#,##0"; break;
-                case "currency": r.NumberFormat = "¥#,##0"; break;
-                case "dec-inc":
-                    var curFmt = r.NumberFormat ?? "0";
-                    var decimals = curFmt.Contains('.') ? curFmt.Split('.')[1].Length + 1 : 1;
-                    r.NumberFormat = "0." + new string('0', decimals);
-                    break;
-                case "dec-dec":
-                    var curFmt2 = r.NumberFormat ?? "0";
-                    if (curFmt2.Contains('.') && curFmt2.Split('.')[1].Length > 1)
-                        r.NumberFormat = "0." + new string('0', curFmt2.Split('.')[1].Length - 1);
-                    else
-                        r.NumberFormat = "0";
-                    break;
-                case "halign-left": r.CellStyle.HorizontalAlignment = (dynamic)1; break;
-                case "halign-center": r.CellStyle.HorizontalAlignment = (dynamic)2; break;
-                case "halign-right": r.CellStyle.HorizontalAlignment = (dynamic)3; break;
-            }
-            Spreadsheet?.ActiveGrid?.InvalidateCells();
+            case "percent": r.NumberFormat = "0%"; break;
+            case "comma": r.NumberFormat = "#,##0"; break;
+            case "currency": r.NumberFormat = "¥#,##0"; break;
+            case "dec-inc":
+                var curFmt = r.NumberFormat ?? "0";
+                var dotIdx = curFmt.IndexOf('.');
+                var decimals = dotIdx >= 0 && dotIdx + 1 < curFmt.Length ? curFmt.Length - dotIdx - 1 + 1 : 1;
+                r.NumberFormat = "0." + new string('0', decimals);
+                break;
+            case "dec-dec":
+                var curFmt2 = r.NumberFormat ?? "0";
+                var dotIdx2 = curFmt2.IndexOf('.');
+                var decLen = dotIdx2 >= 0 && dotIdx2 + 1 < curFmt2.Length ? curFmt2.Length - dotIdx2 - 1 : 0;
+                r.NumberFormat = decLen > 1 ? "0." + new string('0', decLen - 1) : "0";
+                break;
+            case "halign-left": r.CellStyle.HorizontalAlignment = (dynamic)1; break;
+            case "halign-center": r.CellStyle.HorizontalAlignment = (dynamic)2; break;
+            case "halign-right": r.CellStyle.HorizontalAlignment = (dynamic)3; break;
         }
-        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
-    }
+    });
 
     // ── PPTX Ribbon Commands ──────────────────────────────────────
 
@@ -415,9 +334,16 @@ public partial class MainWindow
             var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "Word|*.docx", DefaultExt = ".docx" };
             if (dialog.ShowDialog() == true)
             {
-                using var stream = File.Create(dialog.FileName);
-                RichTextEditor.Save(stream, FormatType.Docx);
-                StatusText.Text = LanguageManager.Format("Hint_WordExported", Path.GetFileName(dialog.FileName));
+                try
+                {
+                    using var stream = File.Create(dialog.FileName);
+                    RichTextEditor.Save(stream, FormatType.Docx);
+                    StatusText.Text = LanguageManager.Format("Hint_WordExported", Path.GetFileName(dialog.FileName));
+                }
+                catch (Exception ex)
+                {
+                    StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}";
+                }
             }
         }
         else
@@ -432,8 +358,15 @@ public partial class MainWindow
             var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "Excel|*.xlsx", DefaultExt = ".xlsx" };
             if (dialog.ShowDialog() == true)
             {
-                Spreadsheet.SaveAs(dialog.FileName);
-                StatusText.Text = LanguageManager.Format("Hint_ExcelExported", Path.GetFileName(dialog.FileName));
+                try
+                {
+                    Spreadsheet.SaveAs(dialog.FileName);
+                    StatusText.Text = LanguageManager.Format("Hint_ExcelExported", Path.GetFileName(dialog.FileName));
+                }
+                catch (Exception ex)
+                {
+                    StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}";
+                }
             }
         }
         else
@@ -442,10 +375,11 @@ public partial class MainWindow
 
     private void HideAllBackstages()
     {
-        try { MainRibbon?.HideBackStage(); } catch (InvalidOperationException) { /* backstage not active */ }
-        try { WordRibbon?.HideBackStage(); } catch (InvalidOperationException) { /* backstage not active */ }
-        try { ExcelRibbon?.HideBackStage(); } catch (InvalidOperationException) { /* backstage not active */ }
-        try { PptxRibbon?.HideBackStage(); } catch (InvalidOperationException) { /* backstage not active */ }
+        try { MainRibbon?.HideBackStage(); } catch { /* backstage not active */ }
+        try { WordRibbon?.HideBackStage(); } catch { /* backstage not active */ }
+        try { ExcelRibbon?.HideBackStage(); } catch { /* backstage not active */ }
+        try { PptxRibbon?.HideBackStage(); } catch { /* backstage not active */ }
+        try { PdfRibbon?.HideBackStage(); } catch { /* backstage not active */ }
     }
 
     // ── Backstage / Help ──────────────────────────────────────────
@@ -454,6 +388,13 @@ public partial class MainWindow
     {
         Views.HelpWindow.ShowSection(this, "overview");
         StatusText.Text = LanguageManager.Get("Menu_Help");
+    }
+
+    private void BackstageOpen_Click(object sender, RoutedEventArgs e)
+    {
+        HideAllBackstages();
+        if (DataContext is ViewModels.MainViewModel vm)
+            vm.OpenDocumentCommand.Execute(null);
     }
 
     private void BackstagePrint_Click(object sender, RoutedEventArgs e)
@@ -498,11 +439,16 @@ public partial class MainWindow
     private void BackstageCloseDoc_Click(object sender, RoutedEventArgs e)
     {
         HideAllBackstages();
-        CloseAllEditors();
 
-        FileNameLabel.Text = LanguageManager.Get("App_Tagline");
-        FileTypeLabel.Text = "";
-        _currentDocPath = "";
-        StatusText.Text = LanguageManager.Get("Doc_Closed");
+        // Defer editor cleanup to allow backstage animation to complete,
+        // preventing Syncfusion InvalidOperationException on ribbon switch.
+        var pathToClose = _currentDocPath;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () =>
+        {
+            if (!string.IsNullOrEmpty(pathToClose))
+                CloseTab(pathToClose);
+            else
+                CloseAllEditors();
+        });
     }
 }

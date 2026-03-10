@@ -17,26 +17,62 @@ public partial class MainWindow
 
         _recentFiles.Add(filePath);
         RefreshRecentFilesList();
-        _currentDocPath = filePath;
+
+        // Already open — just switch to it
+        if (_openTabs.ContainsKey(filePath))
+        {
+            SwitchToTab(filePath);
+            return;
+        }
+
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         var fileName = Path.GetFileName(filePath);
 
-        CloseAllEditors();
-
-        switch (ext)
+        var editorType = ext switch
         {
-            case ".docx" or ".doc":
+            ".docx" or ".doc" => "word",
+            ".xlsx" or ".xls" or ".csv" => "excel",
+            ".pptx" or ".ppt" => "pptx",
+            ".pdf" => "pdf",
+            _ => ""
+        };
+        if (string.IsNullOrEmpty(editorType))
+        {
+            StatusText.Text = Helpers.LanguageManager.Format("Doc_Unsupported", ext);
+            return;
+        }
+
+        // Save current tab before opening new
+        SaveCurrentTabState();
+
+        // Register new tab
+        var tab = new Models.DocumentTab
+        {
+            FilePath = filePath,
+            FileName = fileName,
+            EditorType = editorType,
+        };
+        _openTabs[filePath] = tab;
+        _tabOrder.Add(filePath);
+
+        // Open in editor
+        _currentDocPath = filePath;
+        HideEditorPanels();
+
+        switch (editorType)
+        {
+            case "word":
                 OpenWordEditor(filePath, fileName);
                 break;
-            case ".xlsx" or ".xls" or ".csv":
+            case "excel":
                 OpenExcelEditor(filePath, fileName);
                 break;
-            case ".pptx" or ".ppt":
+            case "pptx":
                 OpenPptxViewer(filePath, fileName);
                 break;
-            default:
-                StatusText.Text = Helpers.LanguageManager.Format("Doc_Unsupported", ext);
-                return;
+            case "pdf":
+                OpenPdfViewer(filePath, fileName);
+                break;
         }
 
         if (DataContext is MainViewModel vm)
@@ -45,6 +81,8 @@ public partial class MainWindow
             vm.DocumentTitle = fileName;
             vm.IsFileLoaded = true;
         }
+
+        RefreshTabBar();
     }
 
     private void OpenWordEditor(string filePath, string displayName)
@@ -114,6 +152,11 @@ public partial class MainWindow
                 _pptxThumbnails.Add(thumb);
             }
 
+            System.Diagnostics.Debug.WriteLine(
+                $"[PPTX] Rendered {_pptxFullSlides.Count} slides, " +
+                $"first full: {(_pptxFullSlides.Count > 0 ? $"{_pptxFullSlides[0].PixelWidth}x{_pptxFullSlides[0].PixelHeight}" : "N/A")}, " +
+                $"first thumb: {(_pptxThumbnails.Count > 0 ? $"{_pptxThumbnails[0].PixelWidth}x{_pptxThumbnails[0].PixelHeight}" : "N/A")}");
+
             PptxSlideCount.Text = $"{_pptxFullSlides.Count} スライド";
 
             var items = new List<PptxSlideItem>();
@@ -148,29 +191,59 @@ public partial class MainWindow
         public int Index { get; set; }
     }
 
+    private void OpenPdfViewer(string filePath, string displayName)
+    {
+        try
+        {
+            WelcomePanel.Visibility = Visibility.Collapsed;
+            PdfViewerPanel.Visibility = Visibility.Visible;
+            PdfFileName.Text = displayName;
+            FileNameLabel.Text = displayName;
+            FileTypeLabel.Text = "PDF";
+            _activeEditorType = "pdf";
+            SwitchRibbon("pdf");
+
+            PdfViewer.Load(filePath);
+            StatusText.Text = Helpers.LanguageManager.Format("Doc_Loaded", displayName);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"PDF: {ex.Message}";
+        }
+    }
+
     private void CloseAllEditors()
     {
-        WordEditorPanel.Visibility = Visibility.Collapsed;
-        ExcelEditorPanel.Visibility = Visibility.Collapsed;
-        PptxInfoPanel.Visibility = Visibility.Collapsed;
+        // Close all tabs
+        _openTabs.Clear();
+        _tabOrder.Clear();
+
+        HideEditorPanels();
         WelcomePanel.Visibility = Visibility.Visible;
         _activeEditorType = "";
+        _currentDocPath = "";
         SwitchRibbon("");
+        RefreshTabBar();
     }
 
     private void CloseEditor_Click(object sender, RoutedEventArgs e)
     {
-        CloseAllEditors();
-
-        FileNameLabel.Text = Helpers.LanguageManager.Get("App_Tagline");
-        FileTypeLabel.Text = "";
-        _currentDocPath = "";
-        StatusText.Text = Helpers.LanguageManager.Get("Status_Ready");
-
-        if (DataContext is MainViewModel vm)
+        if (!string.IsNullOrEmpty(_currentDocPath))
         {
-            vm.IsFileLoaded = false;
-            vm.CurrentFilePath = null;
+            CloseTab(_currentDocPath);
+        }
+        else
+        {
+            CloseAllEditors();
+            FileNameLabel.Text = Helpers.LanguageManager.Get("App_Tagline");
+            FileTypeLabel.Text = "";
+            StatusText.Text = Helpers.LanguageManager.Get("Status_Ready");
+
+            if (DataContext is MainViewModel vm)
+            {
+                vm.IsFileLoaded = false;
+                vm.CurrentFilePath = null;
+            }
         }
     }
 
@@ -185,6 +258,7 @@ public partial class MainWindow
                 "word" => ExtractWordContent(),
                 "excel" => ExtractExcelContent(),
                 "pptx" => ExtractPptxContent(_currentDocPath),
+                "pdf" => ExtractPdfContent(),
                 _ => ""
             };
         }
@@ -297,6 +371,35 @@ public partial class MainWindow
         catch (Exception ex)
         {
             return $"[PPTX テキスト抽出エラー: {ex.Message}]";
+        }
+    }
+
+    private string ExtractPdfContent()
+    {
+        try
+        {
+            var doc = PdfViewer.LoadedDocument;
+            if (doc == null) return "";
+
+            var sb = new StringBuilder();
+            var pageCount = doc.Pages.Count;
+            for (int i = 0; i < pageCount; i++)
+            {
+                sb.AppendLine($"--- ページ {i + 1} ---");
+                var page = doc.Pages[i];
+                sb.AppendLine(page.ExtractText());
+                sb.AppendLine();
+            }
+
+            var text = sb.ToString();
+            if (text.Length > 8000)
+                text = text[..8000] + "\n\n[...以降省略...]";
+
+            return text;
+        }
+        catch (Exception ex)
+        {
+            return $"[PDF テキスト抽出エラー: {ex.Message}]";
         }
     }
 }

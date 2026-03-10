@@ -99,15 +99,6 @@
                                            Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
                         </Button>
-                        <Button Click="ToggleReferencePane_Click" x:Name="RefToggleBtn"
-                                Style="{StaticResource TitleBarButtonStyle}" Height="32" Width="Auto" Padding="8,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center"
-                                           Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <TextBlock x:Name="RefToggleText" FontSize="12" VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                            </StackPanel>
-                        </Button>
                     </StackPanel>
 
                     <!-- Right: Window controls -->
@@ -137,17 +128,9 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="AI">
-                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI コンシェルジュを開く"
+                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI アシスタントを開く"
                                                      AutomationProperties.Name="AIチャット">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="AI 文書生成" SizeForm="Large" Click="AiGenerateDoc_Click" ToolTip="AI でドキュメントを自動生成"
-                                                     AutomationProperties.Name="AI文書生成">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="横断分析" SizeForm="Large" Click="CrossFormatAnalysis_Click" ToolTip="ドキュメント＋参考資料を横断的に AI 分析"
-                                                     AutomationProperties.Name="クロスフォーマット分析">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="AI 設定" SizeForm="Large" Click="AiSettings_Click" ToolTip="AI プロバイダー・モデル・API キーの設定"
                                                      AutomationProperties.Name="AI設定">
@@ -166,9 +149,33 @@
                         <syncfusion:BackStageCommandButton x:Name="BS_Open" Header="開く" Command="{Binding OpenDocumentCommand}">
                             <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
                         </syncfusion:BackStageCommandButton>
-                        <syncfusion:BackStageCommandButton x:Name="BS_ProjectSave" Header="プロジェクト保存 (.iaof)" Click="SaveAsProject_Click">
-                            <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
-                        </syncfusion:BackStageCommandButton>
+                        <syncfusion:BackstageTabItem x:Name="BS_RecentTab" Header="最近使ったファイル" IsSelected="True">
+                            <StackPanel Margin="24,16" Width="450" HorizontalAlignment="Left">
+                                <TextBlock x:Name="BS_RecentTitle" Text="最近使ったファイル" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                                <ListBox x:Name="RecentFilesList" Background="Transparent" BorderThickness="0"
+                                         MouseDoubleClick="RecentFile_DoubleClick" Padding="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Click="RecentFile_Click" Tag="{Binding FilePath}"
+                                                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                    HorizontalContentAlignment="Left" Padding="8,6" Width="420">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding FileName}" FontSize="13"
+                                                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding FilePath}" FontSize="10"
+                                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock x:Name="RecentFilesEmptyHint" Text="まだファイルを開いていません"
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                           Margin="8,16,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </syncfusion:BackstageTabItem>
                         <syncfusion:BackStageCommandButton x:Name="BS_Settings" Header="設定" Click="BackstageSettings_Click">
                             <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
                         </syncfusion:BackStageCommandButton>
@@ -236,9 +243,12 @@
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="エクスポート">
-                            <syncfusion:RibbonButton Label="Word" SizeForm="Large" Click="ExportWord_Click" ToolTip="Word (.docx) としてエクスポート">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                        <syncfusion:RibbonBar Header="元に戻す">
+                            <syncfusion:RibbonButton Label="元に戻す" SizeForm="Small" Click="WordUndo_Click" ToolTip="元に戻す (Ctrl+Z)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7A7;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="やり直し" SizeForm="Small" Click="WordRedo_Click" ToolTip="やり直し (Ctrl+Y)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7A6;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="フォント">
@@ -251,6 +261,9 @@
                             <syncfusion:RibbonButton Label="下線" SizeForm="Small" Click="FormatUnderline_Click" ToolTip="下線 (Ctrl+U)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="U" FontFamily="Segoe UI" FontSize="14" TextDecorations="Underline"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="取り消し線" SizeForm="Small" Click="FormatStrikethrough_Click" ToolTip="取り消し線">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="S" FontFamily="Segoe UI" FontSize="14" TextDecorations="Strikethrough"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="段落">
                             <syncfusion:RibbonButton Label="左揃え" SizeForm="Small" Click="WordAlignLeft_Click" ToolTip="左揃え">
@@ -261,6 +274,14 @@
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="右揃え" SizeForm="Small" Click="WordAlignRight_Click" ToolTip="右揃え">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8E2;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="箇条書き" SizeForm="Small" Click="WordBulletList_Click" ToolTip="箇条書き">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                        </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="挿入">
+                            <syncfusion:RibbonButton Label="画像挿入" SizeForm="Large" Click="WordInsertImage_Click" ToolTip="画像を挿入">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="編集">
@@ -276,7 +297,7 @@
                     </syncfusion:RibbonTab>
                     <syncfusion:RibbonTab Caption="AI">
                         <syncfusion:RibbonBar Header="AI アシスタント">
-                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI コンシェルジュを開く">
+                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI アシスタントを開く">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="要約" SizeForm="Large" Click="AiSummarize_Click" ToolTip="ドキュメント要約">
@@ -288,16 +309,10 @@
                             <syncfusion:RibbonButton Label="分析" SizeForm="Large" Click="AiAnalyze_Click" ToolTip="構造分析">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="横断分析" SizeForm="Large" Click="CrossFormatAnalysis_Click" ToolTip="ドキュメント＋参考資料を横断的に AI 分析">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="プロンプト・資料">
+                        <syncfusion:RibbonBar Header="プロンプト">
                             <syncfusion:RibbonButton Label="プロンプト管理" SizeForm="Large" Click="TogglePromptPane_Click" ToolTip="プロンプトの作成・管理">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A1;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="参考資料" SizeForm="Large" Click="ToggleReferencePane_Click" ToolTip="参考資料パネルを開く">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="AI 設定">
@@ -344,6 +359,14 @@
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="元に戻す">
+                            <syncfusion:RibbonButton Label="元に戻す" SizeForm="Small" Click="ExcelUndo_Click" ToolTip="元に戻す (Ctrl+Z)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7A7;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="やり直し" SizeForm="Small" Click="ExcelRedo_Click" ToolTip="やり直し (Ctrl+Y)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7A6;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                        </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="クリップボード">
                             <syncfusion:RibbonButton Label="貼り付け" SizeForm="Large" Click="ExcelPaste_Click" ToolTip="貼り付け (Ctrl+V)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE77F;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -365,6 +388,9 @@
                             <syncfusion:RibbonButton Label="下線" SizeForm="Small" Click="ExcelUnderline_Click" ToolTip="下線">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="U" FontFamily="Segoe UI" FontSize="14" TextDecorations="Underline"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="罫線" SizeForm="Small" Click="ExcelBorders_Click" ToolTip="罫線 (格子)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xF0E2;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="配置">
                             <syncfusion:RibbonButton Label="左揃え" SizeForm="Small" Click="ExcelAlignLeft_Click" ToolTip="左揃え">
@@ -376,6 +402,12 @@
                             <syncfusion:RibbonButton Label="右揃え" SizeForm="Small" Click="ExcelAlignRight_Click" ToolTip="右揃え">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8E2;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="折り返し" SizeForm="Small" Click="ExcelWrapText_Click" ToolTip="折り返して全体を表示">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B3;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="セル結合" SizeForm="Small" Click="ExcelMergeCells_Click" ToolTip="セルの結合/解除">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C4;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="数値">
                             <syncfusion:RibbonButton Label="%" SizeForm="Small" Click="ExcelPercent_Click" ToolTip="パーセント表示">
@@ -384,11 +416,25 @@
                             <syncfusion:RibbonButton Label="桁区切り" SizeForm="Small" Click="ExcelComma_Click" ToolTip="桁区切りスタイル">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="," FontSize="14" FontWeight="Bold"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="通貨" SizeForm="Small" Click="ExcelCurrency_Click" ToolTip="通貨表示 (¥)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="¥" FontSize="14" FontWeight="Bold"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="小数点以下+" SizeForm="Small" Click="ExcelDecimalInc_Click" ToolTip="小数点以下の桁を増やす">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text=".0→" FontSize="10" FontWeight="Bold"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="小数点以下−" SizeForm="Small" Click="ExcelDecimalDec_Click" ToolTip="小数点以下の桁を減らす">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="←.0" FontSize="10" FontWeight="Bold"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                        </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="表示">
+                            <syncfusion:RibbonButton Label="枠の固定" SizeForm="Large" Click="ExcelFreezePanes_Click" ToolTip="ウィンドウ枠の固定">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE785;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                     </syncfusion:RibbonTab>
                     <syncfusion:RibbonTab Caption="AI">
                         <syncfusion:RibbonBar Header="AI アシスタント">
-                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI コンシェルジュを開く">
+                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI アシスタントを開く">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="データ分析" SizeForm="Large" Click="AiAnalyze_Click" ToolTip="スプレッドシートのデータを AI で分析">
@@ -397,19 +443,10 @@
                             <syncfusion:RibbonButton Label="数式ヘルプ" SizeForm="Large" Click="AiExcelFormula_Click" ToolTip="Excel 数式・関数を AI に相談">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="fx" FontFamily="Segoe UI" FontSize="16" FontWeight="Bold"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="横断分析" SizeForm="Large" Click="CrossFormatAnalysis_Click" ToolTip="ドキュメント＋参考資料を横断的に AI 分析">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="AI レポート" SizeForm="Large" Click="AiGenerateReport_Click" ToolTip="Excel データから Word レポートを AI 生成">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="プロンプト・資料">
+                        <syncfusion:RibbonBar Header="プロンプト">
                             <syncfusion:RibbonButton Label="プロンプト管理" SizeForm="Large" Click="TogglePromptPane_Click" ToolTip="プロンプトの作成・管理">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A1;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="参考資料" SizeForm="Large" Click="ToggleReferencePane_Click" ToolTip="参考資料パネルを開く">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="AI 設定">
@@ -449,34 +486,51 @@
                             <syncfusion:RibbonButton Label="開く" SizeForm="Small" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="PDF出力" SizeForm="Small" Click="PptxExportPdf_Click" ToolTip="PDFとしてエクスポート">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xEA90;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                        </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="スライド操作">
+                            <syncfusion:RibbonButton Label="追加" SizeForm="Large" Click="PptxAddSlide_Click" ToolTip="新しいスライドを追加">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="複製" SizeForm="Large" Click="PptxDuplicateSlide_Click" ToolTip="選択スライドを複製">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="削除" SizeForm="Large" Click="PptxDeleteSlide_Click" ToolTip="選択スライドを削除">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上へ" SizeForm="Small" Click="PptxMoveSlideUp_Click" ToolTip="スライドを上に移動">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74A;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="下へ" SizeForm="Small" Click="PptxMoveSlideDown_Click" ToolTip="スライドを下に移動">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74B;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="スライド情報">
-                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Large" Click="PptxExtractText_Click" ToolTip="スライドのテキストを全文抽出">
+                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Large" Click="PptxExtractText_Click" ToolTip="スライドのテキストを全文抽出してクリップボードにコピー">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                     </syncfusion:RibbonTab>
                     <syncfusion:RibbonTab Caption="AI">
                         <syncfusion:RibbonBar Header="AI アシスタント">
-                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI コンシェルジュ">
+                            <syncfusion:RibbonButton Label="AI チャット" SizeForm="Large" Click="ToggleChatPane_Click" ToolTip="AI アシスタント">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="要約" SizeForm="Large" Click="AiSummarize_Click" ToolTip="スライド内容を AI で要約">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="校正" SizeForm="Large" Click="AiProofread_Click" ToolTip="スライドテキストを AI で校正">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="分析" SizeForm="Large" Click="AiAnalyze_Click" ToolTip="プレゼン構造を AI で分析">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="横断分析" SizeForm="Large" Click="CrossFormatAnalysis_Click" ToolTip="ドキュメント＋参考資料を横断的に AI 分析">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="プロンプト・資料">
+                        <syncfusion:RibbonBar Header="プロンプト">
                             <syncfusion:RibbonButton Label="プロンプト管理" SizeForm="Large" Click="TogglePromptPane_Click">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A1;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="参考資料" SizeForm="Large" Click="ToggleReferencePane_Click">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="AI 設定">
@@ -491,6 +545,9 @@
                         <syncfusion:BackStageCommandButton Header="開く" Command="{Binding OpenDocumentCommand}">
                             <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
                         </syncfusion:BackStageCommandButton>
+                        <syncfusion:BackStageCommandButton Header="PDF出力" Click="PptxExportPdf_Click">
+                            <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xEA90;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
+                        </syncfusion:BackStageCommandButton>
                         <syncfusion:BackStageSeparator/>
                         <syncfusion:BackStageCommandButton Header="ドキュメントを閉じる" Click="BackstageCloseDoc_Click">
                             <syncfusion:BackStageCommandButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:BackStageCommandButton.IconTemplate>
@@ -500,103 +557,16 @@
             </syncfusion:Ribbon>
             </Border>
 
-            <!-- ═══ Main Content Area (Row 2) — 3-Pane Layout ═══ -->
+            <!-- ═══ Main Content Area (Row 2) — 2-Pane Layout ═══ -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="LeftPanelCol" Width="0" MinWidth="0"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>     <!-- center -->
+                    <ColumnDefinition Width="Auto"/>  <!-- right splitter -->
                     <ColumnDefinition x:Name="RightPanelCol" Width="0" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- ═══ Left Panel: Reference Materials ═══ -->
-                <Border Grid.Column="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
-                    <Grid Background="{StaticResource BgCardBrush}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Header -->
-                        <Border Grid.Row="0" Background="{StaticResource BgSecondaryBrush}" Padding="12,8,8,4">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button x:Name="RefAddFolderBtn" Click="AddReferenceFolder_Click"
-                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4,2">
-                                        <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
-                                    </Button>
-                                    <Button x:Name="RefAddFileBtn" Click="AddReference_Click"
-                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4,2">
-                                        <TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="15"/>
-                                    </Button>
-                                    <Button x:Name="RefCloseBtn" Click="CloseLeftPanel_Click"
-                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="4,2" Margin="4,0,0,0">
-                                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="13"/>
-                                    </Button>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock x:Name="RefHeaderText" FontWeight="SemiBold" FontSize="14"
-                                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock x:Name="RefCountText" Text="" FontSize="11" Margin="8,0,0,0"
-                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
-
-                        <!-- Search/Filter -->
-                        <Border Grid.Row="1" Background="{StaticResource BgSecondaryBrush}" Padding="12,0,12,6">
-                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="3" Background="White">
-                                <DockPanel>
-                                    <TextBlock DockPanel.Dock="Left" Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                               Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center" Margin="6,0,4,0"/>
-                                    <TextBox x:Name="RefFilterBox" BorderThickness="0" FontSize="12" Padding="2,4"
-                                             VerticalAlignment="Center"/>
-                                </DockPanel>
-                            </Border>
-                        </Border>
-
-                        <!-- Reference File List -->
-                        <Grid Grid.Row="2">
-                            <!-- Empty State / Drop Zone -->
-                            <Border x:Name="RefDropZone" Padding="20"
-                                    AllowDrop="True" Drop="OnReferenceDrop" DragOver="OnReferenceDragOver">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                            x:Name="RefEmptyState">
-                                    <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="32"
-                                               HorizontalAlignment="Center" Margin="0,0,0,8"
-                                               Foreground="{StaticResource TextTertiaryBrush}"/>
-                                    <TextBlock x:Name="RefEmptyHint" FontSize="12" TextAlignment="Center"
-                                               Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Word / Excel / PowerPoint / Text" FontSize="10" TextAlignment="Center"
-                                               Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <ListBox x:Name="ReferenceList" BorderThickness="0"
-                                     Background="Transparent" HorizontalContentAlignment="Stretch"
-                                     Padding="4,2"
-                                     AllowDrop="True" Drop="OnReferenceDrop" DragOver="OnReferenceDragOver"/>
-                        </Grid>
-
-                        <!-- Status -->
-                        <Border Grid.Row="3" Background="{StaticResource BgSecondaryBrush}" Padding="8,4"
-                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-                            <TextBlock x:Name="RefStatusText" Text="" FontSize="10"
-                                       Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- Left Splitter -->
-                <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
-                              HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                              ResizeBehavior="PreviousAndNext"/>
-
                 <!-- ═══ Center: Document Editor Area ═══ -->
-                <Grid Grid.Column="2">
+                <Grid Grid.Column="0">
                     <!-- Welcome Panel (visible when no file is open) -->
                     <Border x:Name="WelcomePanel" Background="{StaticResource BgPrimaryBrush}">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="480">
@@ -623,7 +593,7 @@
                                             <StackPanel>
                                                 <TextBlock x:Name="WelcomeOpenLabel" Text="ファイルを開く" FontSize="13"
                                                            Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock x:Name="WelcomeOpenDesc" Text=".docx / .xlsx / .pptx / .iaof"
+                                                <TextBlock x:Name="WelcomeOpenDesc" Text=".docx / .xlsx / .pptx"
                                                            FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
@@ -637,21 +607,7 @@
                                             <StackPanel>
                                                 <TextBlock x:Name="WelcomeChatLabel" Text="AI チャットを開く" FontSize="13"
                                                            Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock x:Name="WelcomeChatDesc" Text="ドキュメント生成・分析・質問応答" FontSize="11"
-                                                           Foreground="{StaticResource TextTertiaryBrush}"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Click="AiGenerateDoc_Click" Cursor="Hand"
-                                            Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left" Padding="8,8">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="18"
-                                                       Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Width="28"/>
-                                            <StackPanel>
-                                                <TextBlock x:Name="WelcomeGenLabel" Text="AI 文書生成" FontSize="13"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                <TextBlock x:Name="WelcomeGenDesc" Text="プロンプトからドキュメントを自動作成" FontSize="11"
+                                                <TextBlock x:Name="WelcomeChatDesc" Text="ドキュメントの分析・質問応答" FontSize="11"
                                                            Foreground="{StaticResource TextTertiaryBrush}"/>
                                             </StackPanel>
                                         </StackPanel>
@@ -765,12 +721,12 @@
                 </Grid>
 
                 <!-- Right Splitter -->
-                <GridSplitter Grid.Column="3" Width="4" Background="Transparent"
+                <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
                               HorizontalAlignment="Center" VerticalAlignment="Stretch"
                               ResizeBehavior="PreviousAndNext"/>
 
                 <!-- ═══ Right Panel: AI Chat ═══ -->
-                <views:ChatPanelView x:Name="ChatPanel" Grid.Column="4"/>
+                <views:ChatPanelView x:Name="ChatPanel" Grid.Column="2"/>
             </Grid>
 
             <!-- ═══ Status Bar (Row 3) ═══ -->

@@ -1,5 +1,4 @@
 using InsightCommon.AI;
-using InsightCommon.Addon;
 using InsightCommon.License;
 using InsightAiOffice.App.Helpers;
 using InsightAiOffice.App.ViewModels;
@@ -17,10 +16,11 @@ public static class ServiceConfiguration
         services.AddSingleton(_ =>
             new InsightLicenseManager("IAOF", "Insight AI Office"));
 
-        // AI Services
-        services.AddSingleton(_ => new AiService("IAOF"));
+        // Prompt Preset Service (PromptEditorDialog 用 — ユーザープリセットの CRUD)
         services.AddSingleton(_ => new PromptPresetService("IAOF", BuiltInPresets.GetAll));
-        services.AddSingleton(_ => new ReferenceMaterialsService("InsightAiOffice"));
+
+        // Recent Files
+        services.AddSingleton(_ => new RecentFilesService("IAOF"));
 
         // ViewModels
         services.AddTransient(sp => new MainViewModel(

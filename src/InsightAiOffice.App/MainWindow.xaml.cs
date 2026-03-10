@@ -1,42 +1,50 @@
 using System.Windows;
 using InsightCommon.AI;
-using InsightCommon.Addon;
 using InsightCommon.License;
-using InsightAiOffice.App.ViewModels;
 
 namespace InsightAiOffice.App;
 
 public partial class MainWindow : Window
 {
     private readonly InsightLicenseManager _licenseManager;
-    private readonly AiService _aiService;
     private readonly PromptPresetService _presetService;
-    private readonly ReferenceMaterialsService _referenceService;
-    private readonly ChatPanelViewModel _chatVm;
-    private bool _isLeftPanelOpen;
+    private readonly Helpers.RecentFilesService _recentFiles;
+    private readonly AiChatViewModel _chatVm;
     private bool _isRightPanelOpen;
     private string _activeEditorType = ""; // "word", "excel", "pptx"
     private string _currentDocPath = "";
 
+    // チャットメッセージ管理用（AiChatViewModel の IsSending をフックして管理）
+    private string? _pendingUserInput;
+
     public MainWindow(
         InsightLicenseManager licenseManager,
-        AiService aiService,
         PromptPresetService presetService,
-        ReferenceMaterialsService referenceService)
+        Helpers.RecentFilesService recentFiles)
     {
         InitializeComponent();
         _licenseManager = licenseManager;
-        _aiService = aiService;
         _presetService = presetService;
-        _referenceService = referenceService;
+        _recentFiles = recentFiles;
 
-        _chatVm = new ChatPanelViewModel(aiService, presetService, referenceService);
-        _chatVm.GetDocumentContent = ExtractDocumentContent;
-        _chatVm.SetStatusText = msg => StatusText.Text = msg;
-        _chatVm.OnBeforeSend = OnBeforeChatSend;
-        _chatVm.SetToolExecutor(GetToolExecutor());
+        // ── AiChatViewModel（insight-common 共通基盤） ──
+        _chatVm = new AiChatViewModel(new AiChatViewModelOptions
+        {
+            ProductCode = "IAOF",
+            ProductName = "Insight AI Office",
+            GetLanguage = () => Helpers.LanguageManager.CurrentLanguage == "ja" ? "JA" : "EN",
+            GetSystemPrompt = BuildSystemPrompt,
+            GetBuiltInPresets = () => Helpers.BuiltInPresets.GetPresetPrompts(),
+            LicenseManager = _licenseManager,
+            EnableConcierge = true,
+        });
+
+        // チャットメッセージフロー: IsSending の変化を監視して ChatMessages を管理
+        _chatVm.PropertyChanged += OnChatVmPropertyChanged;
+
         ChatPanel.DataContext = _chatVm;
 
+        // View イベントハンドラ
         ChatPanel.HelpRequested += (_, _) => Views.HelpWindow.ShowSection(this, "ai-assistant");
         ChatPanel.CloseRequested += (_, _) => CloseRightPanel_Click(this, new RoutedEventArgs());
         ChatPanel.PromptEditorRequested += (_, _) => ChatPromptEditor_Click(this, new RoutedEventArgs());
@@ -53,6 +61,60 @@ public partial class MainWindow : Window
         Loaded += OnWindowLoaded;
     }
 
+    // ── チャットメッセージフロー管理 ──────────────────────────
+    // AiChatViewModel がメッセージ追加・Artifact 検出保存を内部で処理するため、
+    // ここでは入力クリア・バッジ更新・ステータスバー更新のみ行う。
+
+    private void OnChatVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(AiChatViewModel.IsSending)) return;
+
+        Dispatcher.Invoke(() =>
+        {
+            if (_chatVm.IsSending && _pendingUserInput == null)
+            {
+                // 実行開始: 入力をクリア（メッセージ追加は AiChatViewModel が行う）
+                _pendingUserInput = _chatVm.AiInput?.Trim();
+                _chatVm.AiInput = "";
+
+                // ドキュメント名バッジを更新
+                ChatPanel.UpdateDocumentBadge(
+                    System.IO.Path.GetFileName(_currentDocPath),
+                    !string.IsNullOrEmpty(_currentDocPath));
+            }
+            else if (!_chatVm.IsSending && _pendingUserInput != null)
+            {
+                // 実行完了（応答追加・Artifact 処理は AiChatViewModel 内部で完了済み）
+                _pendingUserInput = null;
+                StatusText.Text = Helpers.LanguageManager.Get("Status_Ready");
+            }
+        });
+    }
+
+    // ── システムプロンプト構築 ────────────────────────────────
+
+    private string BuildSystemPrompt(string lang)
+    {
+        var isJa = lang != "EN";
+        var prompt = isJa
+            ? "あなたは Insight AI Office のアシスタントです。ユーザーが開いているドキュメントについて質問に答え、分析・校正・要約などを支援してください。回答は簡潔に、日本語で行ってください。"
+            : "You are the Insight AI Office assistant. Answer questions about the user's open document. Provide analysis, proofreading, and summaries. Be concise.";
+
+        // デフォルトプリセットがあればそちらを優先
+        var defaultPreset = _presetService.GetDefault();
+        if (defaultPreset != null && !string.IsNullOrEmpty(defaultPreset.SystemPrompt))
+            prompt = defaultPreset.SystemPrompt;
+
+        // ドキュメントコンテキスト
+        var docContent = ExtractDocumentContent();
+        if (!string.IsNullOrEmpty(docContent))
+            prompt += $"\n\n--- {(isJa ? "現在のドキュメント内容" : "Current Document")} ---\n{docContent}\n--- ---";
+
+        return prompt;
+    }
+
+    // ── ウィンドウ初期化 ─────────────────────────────────────
+
     private void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
         InsightCommon.Theme.SyncfusionInitializer.ApplyTheme(
@@ -62,6 +124,7 @@ public partial class MainWindow : Window
 
         InitializeLanguageRadioButtons();
         ApplyLocalization();
+        RefreshRecentFilesList();
     }
 
     private void ApplyLocalization()
@@ -74,8 +137,6 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(ChatToggleBtn, L("Pane_Chat"));
         PromptToggleBtn.ToolTip = L("Pane_Prompt");
         PromptToggleText.Text = L("Menu_Prompt");
-        RefToggleBtn.ToolTip = L("Pane_Reference");
-        RefToggleText.Text = L("Pane_Reference");
         MinimizeBtn.ToolTip = L("Window_Minimize");
         System.Windows.Automation.AutomationProperties.SetName(MinimizeBtn, L("Window_Minimize"));
         MaximizeButton.ToolTip = L("Window_Maximize");
@@ -83,22 +144,18 @@ public partial class MainWindow : Window
         CloseBtn.ToolTip = L("Window_Close");
         System.Windows.Automation.AutomationProperties.SetName(CloseBtn, L("Window_Close"));
 
-        // Reference panel
-        RefHeaderText.Text = L("Pane_Reference");
-        RefAddFolderBtn.ToolTip = L("Ref_AddFolder");
-        RefAddFileBtn.ToolTip = L("Ref_AddFile");
-        RefCloseBtn.ToolTip = L("Window_Close");
-        RefEmptyHint.Text = L("Ref_DragDropHint");
-
         // Chat panel
-        _chatVm.RefreshLocalization();
-        _chatVm.LoadPresetGroups();
+        _chatVm.RefreshForLanguageChange();
         ChatPanel.RefreshLocalization();
+
+        // Recent files
+        BS_RecentTab.Header = L("BS_Recent");
+        BS_RecentTitle.Text = L("BS_Recent");
+        RecentFilesEmptyHint.Text = L("BS_RecentEmpty");
 
         // Backstage
         MainRibbon.BackStageHeader = L("Menu_File");
         BS_Open.Header = L("BS_Open");
-        BS_ProjectSave.Header = L("BS_ProjectSave");
         BS_Settings.Header = L("BS_Settings");
         BS_LanguageTab.Header = L("BS_Language");
         BS_LanguageTitle.Text = L("BS_Language");
@@ -112,17 +169,15 @@ public partial class MainWindow : Window
         WelcomeTagline.Text = L("Welcome_Tagline");
         WelcomeStartLabel.Text = L("Welcome_Start");
         WelcomeOpenLabel.Text = L("File_Open");
-        WelcomeOpenDesc.Text = ".docx / .xlsx / .pptx / .iaof";
+        WelcomeOpenDesc.Text = ".docx / .xlsx / .pptx";
         WelcomeChatLabel.Text = L("Welcome_OpenChat");
         WelcomeChatDesc.Text = L("Welcome_ChatDesc");
-        WelcomeGenLabel.Text = L("Welcome_AiGenerate");
-        WelcomeGenDesc.Text = L("Welcome_AiGenerateDesc");
         WelcomeDragHint.Text = L("Welcome_DragHint");
 
         // Status bar
         StatusText.Text = L("Status_Ready");
 
-        // Ribbon localization (Syncfusion properties don't support DynamicResource)
+        // Ribbon localization
         ApplyRibbonLocalization();
     }
 
@@ -135,26 +190,27 @@ public partial class MainWindow : Window
         ApplyTab(MainRibbon, 0, L("Menu_Home"), new[]
         {
             (L("Menu_File"), new[] { L("File_Open") }),
-            ("AI", new[] { L("AI_Chat"), L("AI_GenerateDoc"), L("AI_CrossAnalysis"), L("Pane_AiSettings") }),
+            ("AI", new[] { L("AI_Chat"), L("Pane_AiSettings") }),
             (L("Menu_Help"), new[] { L("Menu_Help") }),
         });
-        ApplyBackstage(MainRibbon, L("File_Open"), L("File_ProjectSave"), L("File_Settings"), null, L("License_Title"));
+        ApplyBackstage(MainRibbon, L("File_Open"), L("BS_Recent"), L("File_Settings"), null, L("License_Title"));
 
         // ── Word Ribbon ──
         WordRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(WordRibbon, 0, L("Menu_Home"), new[]
         {
             (L("Menu_File"), new[] { L("File_Open"), L("File_Save"), L("File_SaveAs") }),
-            (L("File_Export"), new[] { "Word" }),
-            (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline") }),
-            (L("Format_Paragraph"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight") }),
+            (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
+            (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Format_Strikethrough") }),
+            (L("Format_Paragraph"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight"), L("Format_BulletList") }),
+            (L("Format_Insert"), new[] { L("Format_InsertImage") }),
             (L("Format_Edit"), new[] { L("Format_FindReplace") }),
             (L("File_Print"), new[] { L("File_Print") }),
         });
         ApplyTab(WordRibbon, 1, L("Menu_AI"), new[]
         {
-            ("AI", new[] { L("AI_Chat"), L("AI_Summarize"), L("AI_Proofread"), L("AI_Analyze"), L("AI_CrossAnalysis") }),
-            (L("Pane_PromptRef"), new[] { L("Pane_Prompt"), L("Pane_Reference") }),
+            ("AI", new[] { L("AI_Chat"), L("AI_Summarize"), L("AI_Proofread"), L("AI_Analyze") }),
+            (L("Pane_Prompt"), new[] { L("Pane_Prompt") }),
             (L("Pane_AiSettings"), new[] { L("Pane_AiSettings") }),
         });
         ApplyBackstage(WordRibbon, L("File_Open"), L("File_SaveOverwrite"), L("File_Print"), null, L("File_CloseDoc"));
@@ -164,15 +220,17 @@ public partial class MainWindow : Window
         ApplyTab(ExcelRibbon, 0, L("Menu_Home"), new[]
         {
             (L("Menu_File"), new[] { L("File_Open"), L("File_Save") }),
+            (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
             (L("Excel_Clipboard"), new[] { L("Excel_Paste"), L("Excel_Cut"), L("Excel_Copy") }),
-            (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline") }),
-            (L("Excel_Alignment"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight") }),
-            (L("Excel_Number"), new[] { "%", L("Excel_Comma") }),
+            (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Excel_Borders") }),
+            (L("Excel_Alignment"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight"), L("Excel_WrapText"), L("Excel_MergeCells") }),
+            (L("Excel_Number"), new[] { "%", L("Excel_Comma"), L("Excel_Currency"), L("Excel_DecInc"), L("Excel_DecDec") }),
+            (L("Excel_View"), new[] { L("Excel_FreezePanes") }),
         });
         ApplyTab(ExcelRibbon, 1, L("Menu_AI"), new[]
         {
-            ("AI", new[] { L("AI_Chat"), L("AI_DataAnalysis"), L("AI_FormulaHelp"), L("AI_CrossAnalysis"), L("AI_GenerateReport") }),
-            (L("Pane_PromptRef"), new[] { L("Pane_Prompt"), L("Pane_Reference") }),
+            ("AI", new[] { L("AI_Chat"), L("AI_DataAnalysis"), L("AI_FormulaHelp") }),
+            (L("Pane_Prompt"), new[] { L("Pane_Prompt") }),
             (L("Pane_AiSettings"), new[] { L("Pane_AiSettings") }),
         });
         ApplyBackstage(ExcelRibbon, L("File_Open"), L("File_SaveAs"), null, L("File_CloseDoc"));
@@ -181,16 +239,17 @@ public partial class MainWindow : Window
         PptxRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(PptxRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("Pptx_ExportPdf") }),
+            (L("Pptx_SlideOps"), new[] { L("Pptx_Add"), L("Pptx_Duplicate"), L("Pptx_Delete"), L("Pptx_MoveUp"), L("Pptx_MoveDown") }),
             (L("Pptx_SlideInfo"), new[] { L("Pptx_ExtractText") }),
         });
         ApplyTab(PptxRibbon, 1, L("Menu_AI"), new[]
         {
-            ("AI", new[] { L("AI_Chat"), L("AI_Summarize"), L("AI_Analyze"), L("AI_CrossAnalysis") }),
-            (L("Pane_PromptRef"), new[] { L("Pane_Prompt"), L("Pane_Reference") }),
+            ("AI", new[] { L("AI_Chat"), L("AI_Summarize"), L("Pptx_Proofread"), L("AI_Analyze") }),
+            (L("Pane_Prompt"), new[] { L("Pane_Prompt") }),
             (L("Pane_AiSettings"), new[] { L("Pane_AiSettings") }),
         });
-        ApplyBackstage(PptxRibbon, L("File_Open"), null, L("File_CloseDoc"));
+        ApplyBackstage(PptxRibbon, L("File_Open"), L("Pptx_ExportPdf"), null, L("File_CloseDoc"));
     }
 
     private static void ApplyTab(Syncfusion.Windows.Tools.Controls.Ribbon ribbon, int tabIndex,
@@ -261,4 +320,3 @@ public partial class MainWindow : Window
         }
     }
 }
-

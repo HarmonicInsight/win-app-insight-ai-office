@@ -5,256 +5,459 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Animated loading dots storyboard -->
+        <Storyboard x:Key="LoadingDotsStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="Dot1" Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1.0" Duration="0:0:0.4" BeginTime="0:0:0.0" AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="Dot2" Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1.0" Duration="0:0:0.4" BeginTime="0:0:0.15" AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="Dot3" Storyboard.TargetProperty="Opacity"
+                             From="0.3" To="1.0" Duration="0:0:0.4" BeginTime="0:0:0.3" AutoReverse="True"/>
+        </Storyboard>
     </UserControl.Resources>
 
-    <Grid Background="{StaticResource BgCardBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>              <!-- 0: Header -->
-            <RowDefinition Height="*" MinHeight="0"/>   <!-- 1: Preset Prompts (variable) -->
-            <RowDefinition Height="Auto"/>              <!-- 2: GridSplitter -->
-            <RowDefinition Height="2*"/>                <!-- 3: Chat Area -->
-            <RowDefinition Height="Auto"/>              <!-- 4: Input Area -->
-        </Grid.RowDefinitions>
+    <Border Background="{StaticResource BgCardBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1,0,0,0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>                                <!-- 0: Header -->
+                <RowDefinition Height="*"/>                                   <!-- 1: Chat Area -->
+                <RowDefinition Height="Auto"/>                                <!-- 2: GridSplitter -->
+                <RowDefinition Height="160" MinHeight="80" MaxHeight="400"/>  <!-- 3: Input Area -->
+            </Grid.RowDefinitions>
 
-        <!-- Row 0: Header -->
-        <Border Grid.Row="0"
-                Background="{StaticResource PrimaryLightBrush}"
-                Padding="10,7"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
-            <StackPanel>
-                <!-- Title + icon buttons -->
-                <DockPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding PanelTitle}"
-                                   FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryBrush}"
-                                   VerticalAlignment="Center"/>
-                        <Button Click="Help_Click"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" Padding="3,1" Margin="6,0,0,0"
-                                MinWidth="0" MinHeight="0">
-                            <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="11"/>
-                        </Button>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right"
-                                Orientation="Horizontal"
+            <!-- ═══ Row 0: Header ═══ -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource PrimaryLightBrush}"
+                    Padding="10,6"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <!-- Title + icon buttons -->
+                    <DockPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PanelTitle}"
+                                       FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            <Button Click="Help_Click"
+                                    Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" Padding="3,1" Margin="6,0,0,0"
+                                    MinWidth="0" MinHeight="0">
+                                <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="11"/>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <Button Command="{Binding OpenAiSettingsCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" Padding="4,2" FontSize="14"
+                                    ToolTip="AI Settings">
+                                <TextBlock Text="&#x2699;" FontSize="14"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </Button>
+                            <Button Click="Close_Click"
+                                    Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" VerticalAlignment="Center" Padding="4" Margin="4,0,0,0">
+                                <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Context badge + Prompt Editor -->
+                    <DockPanel Margin="0,4,0,0">
+                        <!-- Prompt Editor button -->
+                        <Button DockPanel.Dock="Right"
+                                Click="PromptEditor_Click"
+                                Background="White"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
                                 HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
-                        <Button Command="{Binding OpenAiSettingsCommand}"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" Padding="4,2" FontSize="14">
-                            <TextBlock Text="&#x2699;" FontSize="14"/>
-                        </Button>
-                        <Button Click="Close_Click"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" VerticalAlignment="Center" Padding="4" Margin="4,0,0,0">
-                            <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                       Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </Button>
-                    </StackPanel>
-                </DockPanel>
-                <!-- Preset toggle + Prompt Editor button -->
-                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                    <ToggleButton IsChecked="{Binding IsPresetsExpanded}"
-                                  Padding="8,3" MinWidth="0" MinHeight="0"
-                                  Background="Transparent" BorderThickness="1"
-                                  BorderBrush="{StaticResource BorderBrush}"
-                                  Cursor="Hand" Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8EC;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,4,0"/>
-                            <TextBlock x:Name="PresetToggleLabel" FontSize="10"/>
-                        </StackPanel>
-                    </ToggleButton>
-                    <Button Click="PromptEditor_Click"
-                            Background="White" BorderThickness="1"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            HorizontalAlignment="Left"
-                            Padding="8,3" Cursor="Hand"
-                            MinWidth="0" MinHeight="0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,4,0"/>
-                            <TextBlock x:Name="PromptEditorLabel" FontSize="10"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
-        <!-- Row 1: Preset Prompts (collapsible) -->
-        <Border Grid.Row="1"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,0,0,1"
-                Visibility="{Binding IsPresetsExpanded, Converter={StaticResource BoolToVis}}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          Padding="4,2">
-                <ItemsControl ItemsSource="{Binding PresetPromptGroups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="0,2">
-                                <TextBlock Text="{Binding CategoryName}"
-                                           FontSize="10" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           Margin="8,4,0,2"
-                                           FontFamily="Yu Gothic UI, Meiryo, Segoe UI"/>
-                                <ItemsControl ItemsSource="{Binding Prompts}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="{StaticResource BgSecondaryBrush}"
-                                                    BorderBrush="{StaticResource BorderBrush}"
-                                                    BorderThickness="1" CornerRadius="10"
-                                                    Padding="7,3" Margin="0,0,3,3" Cursor="Hand"
-                                                    MouseLeftButtonDown="PresetChip_Click">
-                                                <TextBlock Text="{Binding Label}" FontSize="10"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                                           FontFamily="Yu Gothic UI, Meiryo, Segoe UI"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                Padding="8,3" Cursor="Hand"
+                                MinWidth="0" MinHeight="0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="4" Padding="{TemplateBinding Padding}" Cursor="Hand">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,4,0"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock x:Name="PromptEditorLabel" Text="プロンプト" FontSize="10"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
-
-        <!-- Row 2: GridSplitter -->
-        <GridSplitter Grid.Row="2" Height="6"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                      Background="Transparent" Cursor="SizeNS"
-                      Visibility="{Binding IsPresetsExpanded, Converter={StaticResource BoolToVis}}"/>
-
-        <!-- Row 3: Chat Area -->
-        <Grid Grid.Row="3">
-            <ScrollViewer x:Name="ChatScrollViewer"
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          Padding="8,4">
-                <ItemsControl ItemsSource="{Binding ChatMessages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="4,3" Padding="10,7" MaxWidth="380"
-                                    CornerRadius="12">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}"/>
-                                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Role}" Value="User">
-                                                <Setter Property="Background" Value="#E3F2FD"/>
-                                                <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                <Setter Property="CornerRadius" Value="12,12,0,12"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Role}" Value="Assistant">
-                                                <Setter Property="Background" Value="#F3E5F5"/>
-                                                <Setter Property="HorizontalAlignment" Value="Left"/>
-                                                <Setter Property="CornerRadius" Value="12,12,12,0"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Role}" Value="System">
-                                                <Setter Property="Background" Value="#FFF3E0"/>
-                                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                                <Setter Property="CornerRadius" Value="8"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <StackPanel>
-                                    <TextBox Text="{Binding Content, Mode=OneWay}"
-                                             TextWrapping="Wrap" FontSize="12.5"
-                                             FontFamily="Yu Gothic UI, Meiryo, Segoe UI"
-                                             Foreground="{StaticResource TextPrimaryBrush}"
-                                             Background="Transparent" BorderThickness="0"
-                                             IsReadOnly="True" Cursor="Arrow"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0"
-                                                Visibility="{Binding ActionVisibility}">
-                                        <Button Content="{x:Static helpers:LanguageManager.InsertToDocLabel}"
-                                                FontSize="11" Padding="8,3"
-                                                Background="{StaticResource PrimaryBrush}" Foreground="White"
-                                                BorderThickness="0" Cursor="Hand"
-                                                Click="InsertAiResponse_Click"
-                                                Tag="{Binding Content}"/>
-                                        <Button Content="{x:Static helpers:LanguageManager.CopyLabel}"
-                                                FontSize="11" Padding="8,3" Margin="4,0,0,0"
-                                                Background="Transparent" BorderThickness="1"
-                                                BorderBrush="{StaticResource BorderBrush}" Cursor="Hand"
-                                                Click="CopyAiResponse_Click"
-                                                Tag="{Binding Content}"/>
-                                    </StackPanel>
+                        </Button>
+                        <!-- Context badges -->
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Concierge role badge -->
+                            <Border Background="#EDE9FE" CornerRadius="8" Padding="6,2" Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding IsConciergeActive, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding ConciergeRole}" FontSize="9"
+                                           Foreground="#7C3AED" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- Active document name -->
+                            <Border x:Name="DocBadge"
+                                    Background="#F5F0E6" CornerRadius="3" Padding="6,2"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="9"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,4,0"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="DocBadgeText" FontSize="9.5"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               MaxWidth="160" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Grid>
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
 
-        <!-- Row 4: Input Area -->
-        <Border Grid.Row="4"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,1,0,0"
-                Padding="8,6">
-            <StackPanel>
-                <!-- Processing indicator -->
-                <DockPanel Margin="0,0,0,4"
-                           Visibility="{Binding IsSending, Converter={StaticResource BoolToVis}}">
-                    <Button DockPanel.Dock="Right"
-                            Command="{Binding CancelSendCommand}"
-                            FontSize="10" Padding="6,2"
-                            Background="Transparent" Foreground="{StaticResource ErrorBrush}"
-                            BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1"
-                            Cursor="Hand">
-                        <TextBlock x:Name="CancelLabel"/>
-                    </Button>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="●" FontSize="8"
-                                   Foreground="{StaticResource PrimaryBrush}"
-                                   VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <TextBlock Text="{Binding AiProcessingModelName}"
-                                   FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryBrush}"
-                                   Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding AiProcessingText}"
-                                   FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"
-                                   FontStyle="Italic" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </DockPanel>
+            <!-- ═══ Row 1: Chat Area ═══ -->
+            <Grid Grid.Row="1">
+                <!-- Welcome state (no messages yet) -->
+                <StackPanel x:Name="WelcomeOverlay"
+                            VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Margin="24"
+                            Visibility="{Binding IsChatEmpty, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="&#xE99A;" FontFamily="Segoe MDL2 Assets" FontSize="32"
+                               Foreground="{StaticResource PrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="ChatWelcomeText"
+                               FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                               TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300"/>
+                </StackPanel>
 
-                <!-- Input + Send + Clear -->
+                <ScrollViewer x:Name="ChatScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="6,4">
+                    <ItemsControl ItemsSource="{Binding ChatMessages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Outer container with hover trigger for action buttons -->
+                                <Grid Margin="4,2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/> <!-- Bubble -->
+                                        <RowDefinition Height="Auto"/> <!-- Hover actions -->
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Message bubble -->
+                                    <Border x:Name="MessageBubble" Grid.Row="0"
+                                            Padding="10,7" MaxWidth="500"
+                                            CornerRadius="10">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}"/>
+                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Role}" Value="User">
+                                                        <Setter Property="Background" Value="#FEF3C7"/>
+                                                        <Setter Property="BorderBrush" Value="#E5C76B"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                        <Setter Property="CornerRadius" Value="10,10,0,10"/>
+                                                        <Setter Property="MaxWidth" Value="380"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Role}" Value="Assistant">
+                                                        <Setter Property="Background" Value="#FAF8F5"/>
+                                                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Left"/>
+                                                        <Setter Property="CornerRadius" Value="10,10,10,0"/>
+                                                        <Setter Property="MaxWidth" Value="500"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Role}" Value="System">
+                                                        <Setter Property="Background" Value="#FFF8E1"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                                        <Setter Property="CornerRadius" Value="8"/>
+                                                        <Setter Property="MaxWidth" Value="400"/>
+                                                        <Setter Property="Padding" Value="10,5"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <StackPanel>
+                                            <!-- Message content -->
+                                            <TextBox Text="{Binding Content, Mode=OneWay}"
+                                                     TextWrapping="Wrap"
+                                                     FontFamily="Yu Gothic UI, Meiryo, Segoe UI"
+                                                     Foreground="{StaticResource TextPrimaryBrush}"
+                                                     Background="Transparent" BorderThickness="0"
+                                                     IsReadOnly="True" Cursor="Arrow">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="FontSize" Value="12.5"/>
+                                                        <Setter Property="Padding" Value="0"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Role}" Value="User">
+                                                                <Setter Property="FontSize" Value="12"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Role}" Value="System">
+                                                                <Setter Property="FontSize" Value="11"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                                                <Setter Property="FontStyle" Value="Italic"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
+
+
+
+                                            <!-- Insert to Document button (assistant only) -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Role}" Value="Assistant">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <Button Content="{x:Static helpers:LanguageManager.InsertToDocLabel}"
+                                                        FontSize="11" Padding="8,3"
+                                                        Background="{StaticResource PrimaryBrush}" Foreground="White"
+                                                        BorderThickness="0" Cursor="Hand"
+                                                        Click="InsertAiResponse_Click"
+                                                        Tag="{Binding Content}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Hover action bar (Copy / Retry / Timestamp) -->
+                                    <StackPanel x:Name="ActionBar" Grid.Row="1"
+                                                Orientation="Horizontal"
+                                                Visibility="Collapsed"
+                                                Margin="4,1,4,0">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Role}" Value="User">
+                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <!-- Copy -->
+                                        <Button Click="CopyMessage_Click" Tag="{Binding Content}"
+                                                Background="Transparent" BorderThickness="0"
+                                                Cursor="Hand" Padding="4,2" MinWidth="0" MinHeight="0"
+                                                Opacity="0.6" ToolTip="Copy">
+                                            <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </Button>
+                                        <!-- Retry (Assistant only) -->
+                                        <Button x:Name="RetryButton"
+                                                Click="RetryMessage_Click"
+                                                Background="Transparent" BorderThickness="0"
+                                                Cursor="Hand" Padding="4,2" MinWidth="0" MinHeight="0"
+                                                Opacity="0.6" Visibility="Collapsed"
+                                                ToolTip="Retry">
+                                            <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </Button>
+                                        <!-- Timestamp -->
+                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}"
+                                                   FontSize="9" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- XAML-based hover triggers -->
+                                    <Grid.Triggers>
+                                        <EventTrigger RoutedEvent="MouseEnter">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ObjectAnimationUsingKeyFrames
+                                                        Storyboard.TargetName="ActionBar"
+                                                        Storyboard.TargetProperty="Visibility">
+                                                        <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                                            Value="{x:Static Visibility.Visible}"/>
+                                                    </ObjectAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="MouseLeave">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <ObjectAnimationUsingKeyFrames
+                                                        Storyboard.TargetName="ActionBar"
+                                                        Storyboard.TargetProperty="Visibility">
+                                                        <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                                            Value="{x:Static Visibility.Collapsed}"/>
+                                                    </ObjectAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Grid.Triggers>
+
+                                    <Grid.Style>
+                                        <Style TargetType="Grid"/>
+                                    </Grid.Style>
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Role}" Value="Assistant">
+                                        <Setter TargetName="RetryButton" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- ═══ Row 2: Splitter ═══ -->
+            <GridSplitter Grid.Row="2" Height="5"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                          Background="Transparent" Cursor="SizeNS"
+                          ResizeBehavior="PreviousAndNext"
+                          BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"/>
+
+            <!-- ═══ Row 3: Input Area ═══ -->
+            <Border Grid.Row="3"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="8,6">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="ChatInput" Grid.Column="0"
-                             Text="{Binding AiInput, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             MinHeight="90" MaxHeight="200"
-                             VerticalScrollBarVisibility="Auto"
-                             FontSize="12" Padding="8,6"
-                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                             KeyDown="ChatInput_KeyDown"
-                             AutomationProperties.Name="AI prompt input"/>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="4,0,0,0">
-                        <Button Padding="8,6" MinWidth="36"
-                                Background="{StaticResource PrimaryBrush}" Foreground="White"
-                                BorderThickness="0" Cursor="Hand"
-                                Command="{Binding ExecuteSelectedPromptCommand}">
-                            <TextBlock Text="&#xE724;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
-                        </Button>
-                        <Button Command="{Binding ClearChatCommand}"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" Padding="4,2" Margin="0,2,0,0">
-                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="11"/>
-                        </Button>
-                    </StackPanel>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>  <!-- Processing indicator -->
+                        <RowDefinition Height="*"/>     <!-- Input + Send -->
+                        <RowDefinition Height="Auto"/>  <!-- Model indicator -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Processing indicator with animated dots -->
+                    <Border Grid.Row="0" Margin="0,0,0,4"
+                            Background="#FDF6E3" CornerRadius="6" Padding="8,5"
+                            Visibility="{Binding IsSending, Converter={StaticResource BoolToVis}}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Command="{Binding CancelCommand}"
+                                    FontSize="10" Padding="6,2"
+                                    Background="Transparent" Foreground="{StaticResource ErrorBrush}"
+                                    BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1"
+                                    Cursor="Hand" VerticalAlignment="Center">
+                                <TextBlock x:Name="CancelLabel"/>
+                            </Button>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Animated dots -->
+                                <Ellipse x:Name="Dot1" Width="5" Height="5" Fill="{StaticResource PrimaryBrush}"
+                                         Opacity="0.3" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                <Ellipse x:Name="Dot2" Width="5" Height="5" Fill="{StaticResource PrimaryBrush}"
+                                         Opacity="0.3" Margin="0,0,3,0" VerticalAlignment="Center"/>
+                                <Ellipse x:Name="Dot3" Width="5" Height="5" Fill="{StaticResource PrimaryBrush}"
+                                         Opacity="0.3" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding AiProcessingModelName}"
+                                           FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{StaticResource PrimaryBrush}"
+                                           Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding AiProcessingText}"
+                                           FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontStyle="Italic" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Input area with integrated Send button -->
+                    <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="8"
+                            Background="White">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Input TextBox -->
+                            <Grid Grid.Column="0">
+                                <TextBox x:Name="ChatInput"
+                                         Text="{Binding AiInput, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         FontSize="12" Padding="10,8"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                         FontFamily="Yu Gothic UI, Meiryo, Segoe UI"
+                                         VerticalAlignment="Stretch"
+                                         KeyDown="ChatInput_KeyDown"
+                                         AutomationProperties.Name="AI prompt input"/>
+                                <!-- Placeholder text -->
+                                <TextBlock x:Name="PlaceholderText"
+                                           IsHitTestVisible="False"
+                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           FontSize="12" Padding="12,10"
+                                           VerticalAlignment="Top"
+                                           FontFamily="Yu Gothic UI, Meiryo, Segoe UI"
+                                           Visibility="Collapsed"/>
+                            </Grid>
+
+                            <!-- Send + Clear buttons -->
+                            <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="4,4,6,6">
+                                <Button Padding="8,8" MinWidth="0" MinHeight="0"
+                                        Cursor="Hand"
+                                        Command="{Binding ExecuteFromInputCommand}"
+                                        ToolTip="Send">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}"
+                                                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                                              VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="&#xE724;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                               Foreground="White"/>
+                                </Button>
+                                <Button Command="{Binding ClearChatHistoryCommand}"
+                                        Background="Transparent" BorderThickness="0"
+                                        Cursor="Hand" Padding="4,3" Margin="0,3,0,0"
+                                        MinWidth="0" MinHeight="0"
+                                        ToolTip="Clear">
+                                    <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                               Foreground="{StaticResource TextTertiaryBrush}"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Model indicator -->
+                    <DockPanel Grid.Row="2" Margin="4,4,4,0"
+                               Visibility="{Binding IsApiKeySet, Converter={StaticResource BoolToVis}}">
+                        <Border Background="{StaticResource PrimaryLightBrush}"
+                                CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                            <TextBlock FontSize="9" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       FontFamily="Yu Gothic UI, Meiryo, Segoe UI"
+                                       Text="{Binding CurrentModelDisplay, FallbackValue=AI}"/>
+                        </Border>
+                    </DockPanel>
                 </Grid>
-            </StackPanel>
-        </Border>
-    </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>

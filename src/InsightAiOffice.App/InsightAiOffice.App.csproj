@@ -29,6 +29,7 @@
     <PackageReference Include="Syncfusion.SfRichTextBoxAdv.WPF" Version="32.*" />
     <PackageReference Include="Syncfusion.SfSpreadsheet.WPF" Version="32.*" />
     <PackageReference Include="Syncfusion.Presentation.WPF" Version="32.*" />
+    <PackageReference Include="Syncfusion.PresentationToPdfConverter.WPF" Version="32.*" />
 
     <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="32.*" />
     <PackageReference Include="Syncfusion.Themes.Office2019White.WPF" Version="32.*" />

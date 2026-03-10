@@ -2,7 +2,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using InsightCommon.AI;
-using InsightCommon.Addon;
 using InsightCommon.License;
 using InsightAiOffice.App.ViewModels;
 using InsightAiOffice.App.Helpers;
@@ -16,18 +15,23 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Syncfusion ライセンス登録
-        // FindConfigPath は最大4階層上まで探索するが、src/ 配下のプロジェクトは
-        // bin/Debug/net8.0-windows/ から5階層上がリポジトリルートのため明示指定
-        var configPath = Path.GetFullPath(Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
-            "insight-common", "config", "third-party-licenses.json"));
-        InsightCommon.License.ThirdPartyLicenseProvider.RegisterSyncfusion("uiEdition",
-            File.Exists(configPath) ? configPath : null);
+        // Syncfusion ライセンス登録（Binary License Key — 各コンポーネント用）
+        // IAOF は Word + Excel + PPTX + Ribbon を統合するため、全コンポーネントのキーを登録
+        // 1. RichTextBoxAdv / DocIO (Word) — IOSD と同じキー
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVVRGFfV0JwV0VWYEs=");
+        // 2. SfSpreadsheet UI (Excel) — IOSH と同じキー
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "IAk8BicRIAEqCzQhAR8kAxMHIgRJXmFXf013TGhYfUFzdUpPaVVYVHdeSFhqQ3taZiUeUn1ecnJVRGJdUEZzXEFaZ0h4Un1GYQ==");
+        // 3. XlsIO (Excel library) — IOSH と同じキー
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVXQ2ZYVUF2XkBWYEs=");
+        // 4. Presentation (PowerPoint) — INSS と同じキー
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVXQmBfWEx0V0JWYEs=");
 
-        // Syncfusion テーマ初期化（ライセンスは上で登録済みだが Initialize 内の
-        // SfSkinManager.ApplyStylesOnApplication = false の設定が必要）
-        InsightCommon.Theme.SyncfusionInitializer.Initialize();
+        // カスタム WindowChrome タイトルバーが Syncfusion テーマで上書きされるのを防止
+        Syncfusion.SfSkinManager.SfSkinManager.ApplyStylesOnApplication = false;
 
         LanguageManager.SetLanguage("ja");
 
@@ -40,12 +44,10 @@ public partial class App : Application
             var services = ServiceConfiguration.ConfigureServices();
             var licenseManager = services.GetRequiredService<InsightLicenseManager>();
             var mainViewModel = services.GetRequiredService<MainViewModel>();
-
-            var aiService = services.GetRequiredService<AiService>();
             var presetService = services.GetRequiredService<PromptPresetService>();
-            var referenceService = services.GetRequiredService<ReferenceMaterialsService>();
+            var recentFiles = services.GetRequiredService<Helpers.RecentFilesService>();
 
-            var mainWindow = new MainWindow(licenseManager, aiService, presetService, referenceService)
+            var mainWindow = new MainWindow(licenseManager, presetService, recentFiles)
                 { DataContext = mainViewModel };
 
             // Wire up ViewModel → Window file open

@@ -121,7 +121,7 @@
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
                             <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7BE;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>

@@ -22,7 +22,7 @@ public partial class HelpWindow : Window
         [
             "overview", "ui-layout", "file-ops", "multi-tab",
             "word-edit", "excel-edit", "pptx-view", "pdf-view",
-            "ai-assistant", "prompt-presets",
+            "ai-assistant", "doc-generation", "doc-editing", "tutorial", "prompt-presets",
             "shortcuts", "license", "system-req", "support"
         ];
 
@@ -31,14 +31,14 @@ public partial class HelpWindow : Window
             [
                 "Overview", "UI Layout", "File Operations", "Multi-Tab",
                 "Word Editing", "Excel Editing", "PowerPoint Viewer", "PDF Viewer",
-                "AI Concierge", "Prompt Presets",
+                "AI Concierge", "Document Generation", "Markup & Review", "Tutorial", "Prompt Presets",
                 "Keyboard Shortcuts", "License", "System Requirements", "Support"
             ]
             :
             [
                 "はじめに", "画面構成", "ファイル操作", "マルチタブ",
                 "Word 編集", "Excel 編集", "PowerPoint ビューア", "PDF ビューア",
-                "AI コンシェルジュ", "プロンプトプリセット",
+                "AI コンシェルジュ", "ドキュメント生成", "赤入れ・校正", "チュートリアル", "プロンプトプリセット",
                 "キーボードショートカット", "ライセンス", "システム要件", "お問い合わせ"
             ];
 
@@ -474,6 +474,94 @@ public partial class HelpWindow : Window
 
             <div class="note">
                 <strong>活用例：</strong>Excel を開いて「売上データを分析してグラフ付きレポートを作成して」と指示すると、AI がデータを読み取り、Chart.js グラフ付きの HTML レポートをアーティファクトとして自動生成・保存します。
+            </div>
+
+            <hr class="section-divider"/>
+
+            <h2 id="doc-generation">ドキュメント生成</h2>
+            <p>AI がチャットの指示に基づいて Office ドキュメントを自動生成します。添付ファイルからの変換にも対応。</p>
+
+            <h3>生成できるドキュメント</h3>
+            <table>
+                <tr><th>ツール</th><th>出力形式</th><th>説明</th></tr>
+                <tr><td>generate_report</td><td>Word (.docx)</td><td>レポート・議事録・報告書の生成（6テーマカラー対応）</td></tr>
+                <tr><td>generate_spreadsheet</td><td>Excel (.xlsx)</td><td>集計表・管理表・分析シートの生成（ストライプ・合計行付き）</td></tr>
+                <tr><td>generate_presentation</td><td>PowerPoint (.pptx)</td><td>プレゼン資料の生成（スピーカーノート対応）</td></tr>
+                <tr><td>rewrite_document</td><td>Word (.docx)</td><td>添付 Word のフォーマットを維持したままテキスト内容を書き換え</td></tr>
+            </table>
+
+            <h3>テーマカラー</h3>
+            <p>チャット入力欄のドロップダウンでテーマカラーを選択できます：</p>
+            <table>
+                <tr><th>テーマ</th><th>用途</th></tr>
+                <tr><td>🟡 Gold</td><td>社内報告書（デフォルト）</td></tr>
+                <tr><td>🔵 Blue</td><td>コーポレート・社外向け</td></tr>
+                <tr><td>🟢 Green</td><td>環境・ヘルスケア</td></tr>
+                <tr><td>🔴 Red</td><td>警告・重要文書</td></tr>
+                <tr><td>🔷 Navy</td><td>法務・金融・経営向け</td></tr>
+                <tr><td>⚪ Mono</td><td>モノクロ印刷</td></tr>
+            </table>
+
+            <h3>ファイル添付</h3>
+            <p>チャット入力欄の 📎 ボタンまたはドラッグ＆ドロップでファイルを添付できます。複数ファイル対応。</p>
+            <ul>
+                <li>契約書 (.docx) → 入出金スケジュール (.xlsx) に変換</li>
+                <li>会議メモ (.txt) → 正式な議事録 (.docx) を生成</li>
+                <li>売上データ (.csv) → 分析レポート (.docx) + 集計 (.xlsx)</li>
+                <li>テンプレート (.docx) + データ → 書き換え済みファイル</li>
+            </ul>
+
+            <hr class="section-divider"/>
+
+            <h2 id="doc-editing">ドキュメント赤入れ・校正</h2>
+            <p>AI が開いている Word ドキュメントに<strong>直接赤入れ</strong>（修正マーク・コメント・ハイライト）を行います。</p>
+
+            <h3>使える編集ツール</h3>
+            <table>
+                <tr><th>ツール</th><th>操作</th><th>用途</th></tr>
+                <tr><td>赤入れ (mark_correction)</td><td>取り消し線 + 修正案 + 理由</td><td>校正・レビュー</td></tr>
+                <tr><td>コメント (add_comment)</td><td>テキストにコメント挿入</td><td>レビュー・注意喚起</td></tr>
+                <tr><td>ハイライト (highlight_text)</td><td>蛍光マーカーで強調</td><td>重要箇所のマーキング</td></tr>
+                <tr><td>置換 (find_and_replace)</td><td>一括置換</td><td>表記統一</td></tr>
+            </table>
+
+            <h3>業務プリセット</h3>
+            <p>プロンプトエディタから以下のプリセットを選んで「AI 実行」するだけで、開いている文書に赤入れが実行されます：</p>
+            <ul>
+                <li><strong>🖊️ 赤入れ校正</strong> — 誤字脱字・文法ミスを検出して修正マーク</li>
+                <li><strong>⚖️ 契約書レビュー</strong> — リスク条項にコメント + ハイライト</li>
+                <li><strong>🛡️ コンプライアンスチェック</strong> — 個人情報・差別表現の検出</li>
+                <li><strong>📏 表記統一</strong> — 全角/半角・カッコを一括統一</li>
+                <li><strong>📊 エグゼクティブサマリー</strong> — 長い文書から経営向け要約を生成</li>
+            </ul>
+
+            <div class="note">
+                <strong>使い方：</strong>Word ファイルを開く → プロンプトエディタで「赤入れ校正」を選択 → 「AI 実行」ボタンをクリック → AI がドキュメント内のテキストに直接修正マークを入れます。
+            </div>
+
+            <hr class="section-divider"/>
+
+            <h2 id="tutorial">チュートリアル</h2>
+            <p>リボンの「チュートリアル」ボタンで、サンプルデータを使って機能をすぐに試せます。</p>
+
+            <h3>使い方</h3>
+            <div class="step"><div class="step-num">1</div><div class="step-text">リボンの「チュートリアル」ボタンをクリック</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">試したいシナリオのカードをクリック</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text">サンプルデータが自動添付され、プロンプトが入力され、AI が実行されます</div></div>
+
+            <h3>収録シナリオ</h3>
+            <table>
+                <tr><th>部署</th><th>シナリオ</th></tr>
+                <tr><td>全般</td><td>契約書 → 入出金 Excel、会議メモ → 議事録</td></tr>
+                <tr><td>経営企画</td><td>売上データ → 分析レポート、企画書 → プレゼン 10 枚</td></tr>
+                <tr><td>営業</td><td>見積書テンプレート書き換え、提案書プレゼン作成</td></tr>
+                <tr><td>経理</td><td>請求書チェック → 支払管理表</td></tr>
+                <tr><td>人事</td><td>応募者情報 → 採用選考比較表</td></tr>
+                <tr><td>総務</td><td>社内通知文（オフィス移転）</td></tr>
+            </table>
+
+            <div class="note">
+                <strong>ヒント：</strong>チュートリアルのフォルダにサンプルファイルを追加すると、カスタムシナリオを作成できます。
             </div>
 
             <hr class="section-divider"/>

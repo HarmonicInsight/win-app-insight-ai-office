@@ -91,9 +91,14 @@ public partial class MainWindow
 
         if (!string.IsNullOrEmpty(dialog.ExecutePromptText))
         {
-            _chatVm.AiInput = dialog.ExecutePromptText;
+            // チャットパネルを開く
             if (!_isRightPanelOpen)
                 ToggleRightPanel();
+
+            // プロンプトをセットして即AI実行
+            _chatVm.AiInput = dialog.ExecutePromptText;
+            if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
+                _chatVm.ExecuteFromInputCommand.Execute(null);
         }
     }
 

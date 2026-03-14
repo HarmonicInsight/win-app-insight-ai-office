@@ -39,6 +39,8 @@ public partial class MainWindow : Window
             GetLanguage = () => Helpers.LanguageManager.CurrentLanguage == "ja" ? "JA" : "EN",
             GetSystemPrompt = BuildSystemPrompt,
             GetBuiltInPresets = () => Helpers.BuiltInPresets.GetPresetPrompts(),
+            GetToolDefinitions = () => Services.DocumentGeneration.FileGenerationToolDefinitions.GetAllTools(),
+            CreateToolExecutor = () => new Services.DocumentGeneration.DocumentGenerationToolExecutor(),
             LicenseManager = _licenseManager,
             EnableConcierge = true,
         });

@@ -26,6 +26,11 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.*" />
     <PackageReference Include="System.Drawing.Common" Version="8.*" />
+    <PackageReference Include="Syncfusion.DocIO.Wpf" Version="32.*" />
+    <!-- DocIO.Net.Core の Portable DLL が DocIO.Base と競合するため compile を除外 -->
+    <PackageReference Include="Syncfusion.DocIO.Net.Core" Version="32.*" ExcludeAssets="compile" />
+    <PackageReference Include="Syncfusion.XlsIO.Wpf" Version="32.*" />
+    <PackageReference Include="ClosedXML" Version="0.*" />
     <PackageReference Include="Syncfusion.SfRichTextBoxAdv.WPF" Version="32.*" />
     <PackageReference Include="Syncfusion.SfSpreadsheet.WPF" Version="32.*" />
     <PackageReference Include="Syncfusion.Presentation.WPF" Version="32.*" />

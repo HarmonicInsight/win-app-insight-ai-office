@@ -372,6 +372,24 @@
                         </DockPanel>
                     </Border>
 
+                    <!-- テーマカラー選択 -->
+                    <DockPanel Margin="4,0,4,4">
+                        <TextBlock Text="テーマ:" FontSize="10"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,4,0"
+                                   FontFamily="Yu Gothic UI, Meiryo, Segoe UI" />
+                        <ComboBox x:Name="ThemeColorCombo" FontSize="10" Width="90"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="ThemeColor_SelectionChanged">
+                            <ComboBoxItem Content="🟡 Gold" Tag="gold" IsSelected="True" />
+                            <ComboBoxItem Content="🔵 Blue" Tag="blue" />
+                            <ComboBoxItem Content="🟢 Green" Tag="green" />
+                            <ComboBoxItem Content="🔴 Red" Tag="red" />
+                            <ComboBoxItem Content="🔷 Navy" Tag="navy" />
+                            <ComboBoxItem Content="⚪ Mono" Tag="mono" />
+                        </ComboBox>
+                    </DockPanel>
+
                     <!-- Input area with integrated Send button -->
                     <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8"

@@ -14,6 +14,10 @@ public partial class ChatPanelView : UserControl
     public event EventHandler? PromptEditorRequested;
     public event Action<string>? InsertToDocumentRequested;
     public event Action<string>? CopyResponseRequested;
+    public event Action<string>? ThemeColorChanged;
+
+    /// <summary>現在選択中のテーマカラー名</summary>
+    public string SelectedTheme { get; private set; } = "gold";
 
     private Storyboard? _loadingStoryboard;
 
@@ -145,6 +149,15 @@ public partial class ChatPanelView : UserControl
             try { Clipboard.SetText(content); }
             catch { /* clipboard may be locked */ }
             CopyResponseRequested?.Invoke(content);
+        }
+    }
+
+    private void ThemeColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemeColorCombo?.SelectedItem is ComboBoxItem item && item.Tag is string theme)
+        {
+            SelectedTheme = theme;
+            ThemeColorChanged?.Invoke(theme);
         }
     }
 

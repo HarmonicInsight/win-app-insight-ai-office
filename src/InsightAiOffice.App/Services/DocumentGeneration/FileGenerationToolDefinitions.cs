@@ -305,15 +305,107 @@ public static class FileGenerationToolDefinitions
         """),
     };
 
+    // ========================================================================
+    // ドキュメント編集ツール（開いているファイルに対してリアルタイム操作）
+    // ========================================================================
+
+    /// <summary>赤入れ（修正マーク）</summary>
+    public static ToolDefinition MarkCorrection { get; } = new()
+    {
+        Name = "mark_correction",
+        Description = """
+            開いているドキュメント内のテキストに修正マークを入れます。
+            元のテキストに取り消し線を引き、修正案を赤字で挿入します。
+            理由（コメント）も付けられます。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "original_text": { "type": "string", "description": "修正対象のテキスト（ドキュメント内で検索される）" },
+                "correction": { "type": "string", "description": "修正後のテキスト" },
+                "reason": { "type": "string", "description": "修正理由（コメントとして表示）" }
+            },
+            "required": ["original_text", "correction"]
+        }
+        """),
+    };
+
+    /// <summary>コメント追加</summary>
+    public static ToolDefinition AddComment { get; } = new()
+    {
+        Name = "add_comment",
+        Description = """
+            開いているドキュメント内の指定テキストにコメントを追加します。
+            レビューコメント、改善提案、注意点などを記入できます。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "target_text": { "type": "string", "description": "コメントを付ける対象テキスト" },
+                "comment": { "type": "string", "description": "コメント内容" }
+            },
+            "required": ["target_text", "comment"]
+        }
+        """),
+    };
+
+    /// <summary>テキスト強調（ハイライト）</summary>
+    public static ToolDefinition HighlightText { get; } = new()
+    {
+        Name = "highlight_text",
+        Description = """
+            開いているドキュメント内のテキストを蛍光マーカーで強調します。
+            重要な箇所、注意が必要な箇所を視覚的に目立たせます。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "target_text": { "type": "string", "description": "ハイライトするテキスト" },
+                "color": { "type": "string", "enum": ["yellow", "green", "pink", "blue"], "description": "ハイライト色（デフォルト: yellow）" }
+            },
+            "required": ["target_text"]
+        }
+        """),
+    };
+
+    /// <summary>検索・置換</summary>
+    public static ToolDefinition FindAndReplace { get; } = new()
+    {
+        Name = "find_and_replace",
+        Description = """
+            開いているドキュメント内のテキストを検索して置換します。
+            全出現箇所を一括置換します。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "find": { "type": "string", "description": "検索テキスト" },
+                "replace": { "type": "string", "description": "置換テキスト" }
+            },
+            "required": ["find", "replace"]
+        }
+        """),
+    };
+
     /// <summary>全ツール定義を取得</summary>
     public static List<ToolDefinition> GetAllTools() => new()
     {
+        // ファイル生成
         GenerateReport,
         GeneratePresentation,
         GenerateSpreadsheet,
         GeneratePresentationFromTemplate,
         RewriteDocument,
         BatchGenerate,
+        // ドキュメント編集（開いているファイルに対する操作）
+        MarkCorrection,
+        AddComment,
+        HighlightText,
+        FindAndReplace,
     };
 
     private static JsonObject Parse(string json) => JsonNode.Parse(json)!.AsObject();

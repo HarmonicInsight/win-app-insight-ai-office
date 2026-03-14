@@ -41,7 +41,7 @@ public partial class MainWindow : Window
             GetSystemPrompt = BuildSystemPrompt,
             GetBuiltInPresets = () => Helpers.BuiltInPresets.GetPresetPrompts(),
             GetToolDefinitions = () => Services.DocumentGeneration.FileGenerationToolDefinitions.GetAllTools(),
-            CreateToolExecutor = () => new Services.DocumentGeneration.DocumentGenerationToolExecutor(),
+            CreateToolExecutor = CreateToolExecutor,
             LicenseManager = _licenseManager,
             EnableConcierge = true,
         });
@@ -112,13 +112,80 @@ public partial class MainWindow : Window
         _chatAttachedFiles = files;
     }
 
+    // ── ツール実行ハンドラ ───────────────────────────────────
+
+    private InsightCommon.AI.IToolExecutor CreateToolExecutor()
+    {
+        // SfRichTextBoxAdv の検索・置換は Selection API 経由で行う
+        bool DoReplace(string find, string replacement)
+        {
+            return Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    if (RichTextEditor == null) return false;
+                    // FindAndReplace はコマンド経由
+                    var searchResult = RichTextEditor.Find(find, Syncfusion.Windows.Controls.RichTextBoxAdv.FindOptions.None);
+                    if (searchResult == null) return false;
+                    RichTextEditor.Selection.InsertText(replacement);
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        var callbacks = new Services.DocumentGeneration.DocumentEditorCallbacks
+        {
+            MarkCorrection = (original, correction, reason) =>
+            {
+                var replaced = $"【削除: {original}】→ {correction}" + (reason != null ? $" ({reason})" : "");
+                return DoReplace(original, replaced);
+            },
+            AddComment = (targetText, comment) =>
+            {
+                return DoReplace(targetText, $"{targetText} 【※{comment}】");
+            },
+            HighlightText = (targetText, color) =>
+            {
+                return DoReplace(targetText, $"★{targetText}★");
+            },
+            FindAndReplace = (find, replace) =>
+            {
+                int count = 0;
+                while (DoReplace(find, replace)) count++;
+                return count;
+            },
+        };
+
+        return new Services.DocumentGeneration.DocumentGenerationToolExecutor(null, callbacks);
+    }
+
     // ── システムプロンプト構築 ────────────────────────────────
 
     private string BuildSystemPrompt(string lang)
     {
         var isJa = lang != "EN";
         var prompt = isJa
-            ? "あなたは Insight AI Office のアシスタントです。ユーザーが開いているドキュメントについて質問に答え、分析・校正・要約などを支援してください。回答は簡潔に、日本語で行ってください。"
+            ? """
+              あなたは Insight AI Office のアシスタントです。
+              ユーザーが開いているドキュメントについて質問に答え、分析・校正・要約などを支援してください。
+
+              【ドキュメント生成ツール】
+              - generate_report: Word/HTMLレポートを生成（theme対応）
+              - generate_spreadsheet: Excelを生成（theme対応）
+              - generate_presentation: PowerPointを生成
+              - rewrite_document: 添付Wordの書式を維持して内容を書き換え
+
+              【ドキュメント編集ツール（開いているファイルに直接操作）】
+              - mark_correction: テキストに赤入れ（取り消し線＋修正案）
+              - add_comment: テキストにコメント追加
+              - highlight_text: テキストを蛍光マーカーで強調
+              - find_and_replace: テキストの検索・置換
+
+              【ツール呼び出しルール】
+              ユーザーが校正・赤入れ・修正・ドキュメント作成を依頼した場合、
+              必ず適切なツールを実際に呼び出してください。説明だけで終わらないこと。
+              """
             : "You are the Insight AI Office assistant. Answer questions about the user's open document. Provide analysis, proofreading, and summaries. Be concise.";
 
         // デフォルトプリセットがあればそちらを優先

@@ -46,6 +46,84 @@ public static class BuiltInPresets
             SystemPrompt = "以下の内容から議事録を作成してください。日時、参加者、議題、決定事項、アクションアイテム（担当者・期限付き）の形式でまとめてください。",
             Description = "テキストから議事録フォーマットを生成", RequiresContextData = true },
 
+        // ── 赤入れ・レビュー（ドキュメント編集ツール使用） ──
+        new() { Id = "builtin_redline_review", Name = "赤入れ校正", Category = "赤入れ・レビュー", Icon = "🖊️",
+            SystemPrompt = """
+                開いているドキュメントを校正し、mark_correction ツールを使って直接赤入れしてください。
+
+                チェック項目:
+                1. 誤字脱字・変換ミス
+                2. 文法の誤り・不自然な表現
+                3. 敬語の誤用
+                4. 句読点の不適切な使用
+
+                修正箇所ごとに mark_correction を呼び出し、original_text（元テキスト）、correction（修正案）、reason（理由）を指定してください。
+                最後に修正箇所の件数と概要をテキストで報告してください。
+                """,
+            Description = "AIが開いている文書に直接赤入れ（修正マーク）を入れます", RequiresContextData = true },
+
+        new() { Id = "builtin_contract_review", Name = "契約書レビュー", Category = "赤入れ・レビュー", Icon = "⚖️",
+            SystemPrompt = """
+                開いている契約書をレビューし、リスク条項にコメントを付けてください。
+
+                チェック項目:
+                1. 不利な条件（一方的な解除権、過大な違約金等）
+                2. 曖昧な表現（「適切な」「合理的な」等の定義がない用語）
+                3. 期限・期間の矛盾
+                4. 責任範囲の不明確さ
+                5. 準拠法・管轄裁判所の記載漏れ
+
+                リスクのある箇所には add_comment ツールでコメントを付けてください。
+                重要度が高い箇所には highlight_text で強調してください。
+                最後にリスク評価の概要をテキストで報告してください。
+                """,
+            Description = "契約書のリスク条項をAIがチェック・コメント", RequiresContextData = true },
+
+        new() { Id = "builtin_compliance_check", Name = "コンプライアンスチェック", Category = "赤入れ・レビュー", Icon = "🛡️",
+            SystemPrompt = """
+                開いているドキュメントをコンプライアンス（法令遵守）の観点でチェックしてください。
+
+                チェック項目:
+                1. 個人情報の不適切な記載（氏名・住所・電話番号の露出）
+                2. 差別的・不適切な表現
+                3. 著作権に関わる引用の問題
+                4. 誇大表現・根拠のない主張
+                5. 社外秘情報の漏洩リスク
+
+                問題箇所には highlight_text（pink）で強調し、add_comment で具体的な改善案を記入してください。
+                """,
+            Description = "個人情報・差別表現・著作権等のコンプライアンスチェック", RequiresContextData = true },
+
+        new() { Id = "builtin_style_unify", Name = "表記統一", Category = "赤入れ・レビュー", Icon = "📏",
+            SystemPrompt = """
+                開いているドキュメントの表記を統一してください。find_and_replace ツールを使って一括置換します。
+
+                統一ルール:
+                1. 数字: 全角→半角（１→1、２→2 等）
+                2. 英字: 全角→半角（ＡＢＣ→ABC 等）
+                3. カッコ: 全角に統一（(→（、)→） 等）
+                4. 「〜」→「～」
+                5. スペース: 全角→半角
+
+                各置換を find_and_replace で実行し、最後に置換件数を報告してください。
+                """,
+            Description = "全角/半角・カッコ等の表記を一括統一", RequiresContextData = true },
+
+        new() { Id = "builtin_exec_summary", Name = "エグゼクティブサマリー生成", Category = "文書作成", Icon = "📊",
+            SystemPrompt = """
+                開いているドキュメントの内容を分析し、経営層向けのエグゼクティブサマリーをgenerate_reportツールでWord形式で生成してください。
+
+                構成:
+                1. タイトル（元文書のタイトルを引用）
+                2. 要約（3行以内で結論を先に）
+                3. KPI / 重要指標（数値データがあれば key_metrics で表示）
+                4. 主要な論点（箇条書き5項目以内）
+                5. 推奨アクション
+
+                テーマはNavyで。
+                """,
+            Description = "長い文書から経営層向け要約レポートを自動生成", RequiresContextData = true },
+
         // ════════════════════════════════════════════════════════════
         // 📊 InsightSlide からインポート
         // ════════════════════════════════════════════════════════════

@@ -102,6 +102,32 @@ public partial class MainWindow
         }
     }
 
+    // ── Tutorial ──────────────────────────────────────────────────
+
+    private void Tutorial_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Views.TutorialDialog { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        // チャットパネルを開く
+        if (!_isRightPanelOpen)
+            ToggleRightPanel();
+
+        // 添付ファイルをセット
+        foreach (var file in dialog.SelectedFiles)
+            ChatPanel.AttachedFiles.Add(new Views.AttachedFileInfo(file));
+        _chatAttachedFiles = dialog.SelectedFiles
+            .Select(f => new Views.AttachedFileInfo(f)).ToList();
+
+        // プロンプトをセットして即AI実行
+        if (!string.IsNullOrEmpty(dialog.SelectedPrompt))
+        {
+            _chatVm.AiInput = dialog.SelectedPrompt;
+            if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
+                _chatVm.ExecuteFromInputCommand.Execute(null);
+        }
+    }
+
     // ── Recent Files ───────────────────────────────────────────────
 
     private void RefreshRecentFilesList()

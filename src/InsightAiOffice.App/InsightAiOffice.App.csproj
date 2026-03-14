@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\content-packs\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\tutorials\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\InsightAiOffice.Core\InsightAiOffice.Core.csproj" />

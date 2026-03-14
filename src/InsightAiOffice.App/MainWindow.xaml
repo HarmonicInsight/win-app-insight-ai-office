@@ -119,14 +119,12 @@
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="チュートリアル">
+                        <syncfusion:RibbonBar Header="ヘルプ">
                             <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7BE;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                        </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Large" Click="RibbonHelp_Click">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                     </syncfusion:RibbonTab>

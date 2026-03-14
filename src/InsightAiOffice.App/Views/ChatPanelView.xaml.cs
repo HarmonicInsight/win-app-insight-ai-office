@@ -1,4 +1,6 @@
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,9 +17,13 @@ public partial class ChatPanelView : UserControl
     public event Action<string>? InsertToDocumentRequested;
     public event Action<string>? CopyResponseRequested;
     public event Action<string>? ThemeColorChanged;
+    public event Action<List<AttachedFileInfo>>? FilesAttached;
 
     /// <summary>現在選択中のテーマカラー名</summary>
     public string SelectedTheme { get; private set; } = "gold";
+
+    /// <summary>添付ファイル一覧</summary>
+    public ObservableCollection<AttachedFileInfo> AttachedFiles { get; } = new();
 
     private Storyboard? _loadingStoryboard;
 
@@ -26,6 +32,7 @@ public partial class ChatPanelView : UserControl
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
         ChatInput.TextChanged += ChatInput_TextChanged;
+        AttachedFilesList.ItemsSource = AttachedFiles;
 
         Loaded += (_, _) => UpdatePlaceholder();
     }
@@ -152,6 +159,60 @@ public partial class ChatPanelView : UserControl
         }
     }
 
+    // ── ファイル添付 ──
+
+    private void AttachFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "All Supported|*.xlsx;*.docx;*.pptx;*.csv;*.pdf;*.txt;*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp|All Files|*.*",
+            Multiselect = true,
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            foreach (var file in dialog.FileNames)
+                AddAttachment(file);
+        }
+    }
+
+    private void InputArea_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void InputArea_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(DataFormats.FileDrop) is string[] files)
+        {
+            foreach (var file in files)
+                AddAttachment(file);
+        }
+    }
+
+    private void AddAttachment(string filePath)
+    {
+        if (AttachedFiles.Any(f => f.FullPath == filePath)) return;
+        AttachedFiles.Add(new AttachedFileInfo(filePath));
+        FilesAttached?.Invoke(AttachedFiles.ToList());
+    }
+
+    private void RemoveAttachment_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string path)
+        {
+            var item = AttachedFiles.FirstOrDefault(f => f.FullPath == path);
+            if (item != null)
+            {
+                AttachedFiles.Remove(item);
+                FilesAttached?.Invoke(AttachedFiles.ToList());
+            }
+        }
+    }
+
+    /// <summary>送信後に添付ファイルをクリア</summary>
+    public void ClearAttachments() => AttachedFiles.Clear();
+
     private void ThemeColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ThemeColorCombo?.SelectedItem is ComboBoxItem item && item.Tag is string theme)
@@ -165,7 +226,6 @@ public partial class ChatPanelView : UserControl
     {
         if (DataContext is not AiChatViewModel vm) return;
 
-        // Find the last user message and re-send it
         for (int i = vm.ChatMessages.Count - 1; i >= 0; i--)
         {
             if (vm.ChatMessages[i].Role == ChatRole.User)
@@ -176,5 +236,29 @@ public partial class ChatPanelView : UserControl
             }
         }
     }
+}
 
+/// <summary>添付ファイル情報</summary>
+public class AttachedFileInfo
+{
+    public string FileName { get; set; }
+    public string FullPath { get; set; }
+    public string Icon { get; set; }
+
+    public AttachedFileInfo(string filePath)
+    {
+        FullPath = filePath;
+        FileName = Path.GetFileName(filePath);
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        Icon = ext switch
+        {
+            ".xlsx" or ".xlsm" or ".csv" => "📊",
+            ".docx" => "📝",
+            ".pptx" => "📽️",
+            ".pdf" => "📕",
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" => "🖼️",
+            ".txt" or ".md" => "📄",
+            _ => "📁",
+        };
+    }
 }

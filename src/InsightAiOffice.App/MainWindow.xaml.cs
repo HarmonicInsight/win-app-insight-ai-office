@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private bool _isRightPanelOpen;
     private string _activeEditorType = ""; // "word", "excel", "pptx"
     private string _currentDocPath = "";
+    private List<Views.AttachedFileInfo> _chatAttachedFiles = new();
 
     // ── Multi-Tab ──
     private readonly Dictionary<string, Models.DocumentTab> _openTabs = new();
@@ -56,6 +57,7 @@ public partial class MainWindow : Window
         ChatPanel.PromptEditorRequested += (_, _) => ChatPromptEditor_Click(this, new RoutedEventArgs());
         ChatPanel.InsertToDocumentRequested += InsertAiResponseText;
         ChatPanel.CopyResponseRequested += CopyAiResponseText;
+        ChatPanel.FilesAttached += OnFilesAttached;
 
         UpdatePlanBadge();
         UpdateLicenseBackstage();
@@ -96,11 +98,18 @@ public partial class MainWindow : Window
             }
             else if (!_chatVm.IsSending && _pendingUserInput != null)
             {
-                // 実行完了（応答追加・Artifact 処理は AiChatViewModel 内部で完了済み）
+                // 実行完了
                 _pendingUserInput = null;
+                _chatAttachedFiles.Clear();
+                ChatPanel.ClearAttachments();
                 StatusText.Text = Helpers.LanguageManager.Get("Status_Ready");
             }
         });
+    }
+
+    private void OnFilesAttached(List<Views.AttachedFileInfo> files)
+    {
+        _chatAttachedFiles = files;
     }
 
     // ── システムプロンプト構築 ────────────────────────────────
@@ -117,10 +126,40 @@ public partial class MainWindow : Window
         if (defaultPreset != null && !string.IsNullOrEmpty(defaultPreset.SystemPrompt))
             prompt = defaultPreset.SystemPrompt;
 
-        // ドキュメントコンテキスト
+        // ドキュメントコンテキスト（エディタで開いているファイル）
         var docContent = ExtractDocumentContent();
         if (!string.IsNullOrEmpty(docContent))
             prompt += $"\n\n--- {(isJa ? "現在のドキュメント内容" : "Current Document")} ---\n{docContent}\n--- ---";
+
+        // 添付ファイルコンテキスト
+        if (_chatAttachedFiles.Count > 0)
+        {
+            prompt += isJa
+                ? "\n\n【添付ファイル】\n以下のファイルが添付されています。内容を分析してください。\nテンプレートベース操作では、添付ファイルのフルパスをツールの template_path / source_path に指定してください。\n"
+                : "\n\n[Attached Files]\n";
+
+            foreach (var f in _chatAttachedFiles)
+            {
+                prompt += $"- {f.FileName} (path: {f.FullPath})\n";
+                try
+                {
+                    var ext = System.IO.Path.GetExtension(f.FullPath).ToLowerInvariant();
+                    if (ext is ".txt" or ".csv" or ".md")
+                    {
+                        var text = System.IO.File.ReadAllText(f.FullPath);
+                        if (text.Length > 50000) text = text[..50000] + "\n...(truncated)";
+                        prompt += $"\n```\n{text}\n```\n";
+                    }
+                }
+                catch { /* ignore read errors */ }
+            }
+        }
+
+        // テーマカラー
+        var theme = ChatPanel?.SelectedTheme ?? "gold";
+        prompt += isJa
+            ? $"\n\n【カラーテーマ】\n全ドキュメント生成ツールに theme パラメータがあります。現在のテーマ: {theme}"
+            : $"\n\n[Color Theme] Current: {theme}";
 
         return prompt;
     }

@@ -25,18 +25,6 @@ public partial class PromptEditorDialog : Window
         _presetService = presetService;
 
         _configuredProviders = BuildConfiguredProviders(providerConfig);
-
-        var models = AiModelRegistry.GetModelsWithCapability(AiCapability.Chat)
-            .Select(m => new ModelItem(
-                m.Id,
-                m.DisplayName,
-                _configuredProviders.Contains(m.Provider)))
-            .ToList();
-        ModelCombo.ItemsSource = models;
-        ModelCombo.DisplayMemberPath = "DisplayName";
-        ModelCombo.SelectedValuePath = "ModelId";
-        ModelCombo.SelectedValue = ClaudeModels.DefaultModel;
-
         ApplyLocalization();
         RefreshCategoryComboBox();
         BuildTree();
@@ -60,10 +48,8 @@ public partial class PromptEditorDialog : Window
         Title = L("PE_Title");
         PromptListLabel.Text = L("PE_Presets");
         AddButton.ToolTip = L("PE_Add");
-        EditorTitle.Text = L("PE_Title");
         NameLabel.Text = L("PE_Name");
         CategoryLabel.Text = L("PE_Category");
-        ModelLabel.Text = L("PE_Model");
         PromptTextLabel.Text = L("PE_PromptText");
         SaveButton.Content = L("PE_Save");
         ExecuteButton.Content = L("PE_Execute");
@@ -82,29 +68,44 @@ public partial class PromptEditorDialog : Window
 
         var allPresets = _presetService.LoadAll();
 
-        // My Prompts (custom) — displayed first
+        // マイプロンプト（ユーザー作成）
         var customHeader = new TreeViewItem
         {
-            Header = L("PE_Custom"),
+            Header = "📁 " + L("PE_Custom"),
             IsExpanded = true,
-            FontWeight = FontWeights.SemiBold,
-            FontSize = 12,
+            FontWeight = FontWeights.Bold,
+            FontSize = 13,
         };
         var custom = allPresets.Where(p => !p.Id.StartsWith("builtin_", StringComparison.Ordinal)).ToList();
-        foreach (var preset in custom)
+        if (custom.Count == 0)
         {
-            var label = preset.Name;
-            if (preset.IsDefault) label = "\u2605 " + label;
-            if (preset.IsPinned) label = "\uD83D\uDCCC " + label;
             customHeader.Items.Add(new TreeViewItem
             {
-                Header = label,
-                Tag = preset,
-                FontWeight = FontWeights.Normal,
-                FontSize = 11,
+                Header = "＋ ボタンで追加できます",
+                FontStyle = FontStyles.Italic,
+                FontSize = 10,
+                Foreground = System.Windows.Media.Brushes.Gray,
+                IsEnabled = false,
             });
         }
+        else
+        {
+            foreach (var preset in custom)
+            {
+                var label = preset.Name;
+                if (preset.IsDefault) label = "\u2605 " + label;
+                if (preset.IsPinned) label = "\uD83D\uDCCC " + label;
+                customHeader.Items.Add(new TreeViewItem
+                {
+                    Header = (preset.Icon ?? "📝") + " " + label,
+                    Tag = preset,
+                    FontWeight = FontWeights.Normal,
+                    FontSize = 11,
+                });
+            }
+        }
         PromptTree.Items.Add(customHeader);
+        PromptTree.Items.Add(new Separator { Margin = new Thickness(4, 6, 4, 6) });
 
         // Built-in presets grouped by product → subcategory
         var builtIn = allPresets.Where(p => p.Id.StartsWith("builtin_", StringComparison.Ordinal)).ToList();
@@ -134,9 +135,9 @@ public partial class PromptEditorDialog : Window
         {
             var productItem = new TreeViewItem
             {
-                Header = productGroup.Key,
+                Header = "📋 " + productGroup.Key,
                 IsExpanded = false,
-                FontWeight = FontWeights.SemiBold,
+                FontWeight = FontWeights.Bold,
                 FontSize = 12,
             };
 
@@ -162,7 +163,7 @@ public partial class PromptEditorDialog : Window
                 {
                     subItem.Items.Add(new TreeViewItem
                     {
-                        Header = preset.Name,
+                        Header = (preset.Icon ?? "📝") + " " + preset.Name,
                         Tag = preset,
                         FontWeight = FontWeights.Normal,
                         FontSize = 11,
@@ -193,20 +194,12 @@ public partial class PromptEditorDialog : Window
         CategoryCombo.Text = preset.Category ?? "";
         ExecuteButton.IsEnabled = true;
 
-        var modelId = preset.ModelId;
-        if (string.IsNullOrEmpty(modelId))
-            modelId = ClaudeModels.DefaultModel;
-        ModelCombo.SelectedValue = modelId;
-        if (ModelCombo.SelectedItem == null)
-            ModelCombo.SelectedValue = ClaudeModels.DefaultModel;
-
         if (preset.Id.StartsWith("builtin_", StringComparison.Ordinal))
         {
             _isPresetSelected = true;
             NameBox.IsReadOnly = true;
             PromptBox.IsReadOnly = true;
             CategoryCombo.IsEnabled = false;
-            ModelCombo.IsEnabled = false;
             SaveButton.IsEnabled = false;
             DeleteButton.IsEnabled = false;
             CustomizeButton.IsEnabled = true;
@@ -217,7 +210,6 @@ public partial class PromptEditorDialog : Window
             NameBox.IsReadOnly = false;
             PromptBox.IsReadOnly = false;
             CategoryCombo.IsEnabled = true;
-            ModelCombo.IsEnabled = true;
             SaveButton.IsEnabled = true;
             DeleteButton.IsEnabled = true;
             CustomizeButton.IsEnabled = false;
@@ -243,7 +235,6 @@ public partial class PromptEditorDialog : Window
     {
         if (_selectedPreset == null || _isPresetSelected) return;
 
-        var savedModelId = ModelCombo.SelectedValue as string ?? ClaudeModels.DefaultModel;
         var updated = new UserPromptPreset
         {
             Id = _selectedPreset.Id,
@@ -253,7 +244,6 @@ public partial class PromptEditorDialog : Window
             Author = _selectedPreset.Author,
             Category = (CategoryCombo.Text ?? "").Trim(),
             Mode = "check",
-            ModelId = savedModelId,
             IsDefault = _selectedPreset.IsDefault,
             IsPinned = _selectedPreset.IsPinned,
             UsageCount = _selectedPreset.UsageCount,
@@ -289,17 +279,15 @@ public partial class PromptEditorDialog : Window
         if (_selectedPreset == null) return;
 
         var customSuffix = Helpers.LanguageManager.Get("PE_CustomSuffix");
-        var selectedModelId = ModelCombo.SelectedValue as string ?? ClaudeModels.DefaultModel;
         var newPreset = new UserPromptPreset
         {
             Id = PromptPresetService.GenerateId(),
             Name = _selectedPreset.Name + " (" + customSuffix + ")",
-            SystemPrompt = _selectedPreset.SystemPrompt,
+            SystemPrompt = PromptBox.Text.Trim(),
             Description = _selectedPreset.Description,
             Author = "",
             Category = _selectedPreset.Category,
             Mode = _selectedPreset.Mode,
-            ModelId = selectedModelId,
         };
         _presetService.Add(newPreset);
         HasChanges = true;
@@ -318,7 +306,7 @@ public partial class PromptEditorDialog : Window
             Save_Click(sender, e);
 
         ExecutePromptText = text;
-        ExecuteModelId = ModelCombo.SelectedValue as string ?? ClaudeModels.DefaultModel;
+        ExecuteModelId = _selectedPreset.ModelId ?? ClaudeModels.DefaultModel;
         _presetService.IncrementUsage(_selectedPreset.Id);
         Close();
     }

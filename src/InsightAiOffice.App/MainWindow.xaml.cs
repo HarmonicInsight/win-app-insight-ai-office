@@ -14,6 +14,33 @@ public partial class MainWindow : Window
     private string _activeEditorType = ""; // "word", "excel", "pptx"
     private string _currentDocPath = "";
     private List<Views.AttachedFileInfo> _chatAttachedFiles = new();
+    private string _artifactDir = GetDefaultArtifactDir();
+
+    private static string GetDefaultArtifactDir()
+    {
+        var dir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "HarmonicInsight", "InsightAiOffice", "Artifacts", "Default");
+        System.IO.Directory.CreateDirectory(dir);
+        return dir;
+    }
+
+    private void UpdateArtifactDir()
+    {
+        if (!string.IsNullOrEmpty(_currentDocPath))
+        {
+            var projectName = System.IO.Path.GetFileNameWithoutExtension(_currentDocPath);
+            var safeName = string.Join("_", projectName.Split(System.IO.Path.GetInvalidFileNameChars()));
+            _artifactDir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "HarmonicInsight", "InsightAiOffice", "Artifacts", safeName);
+        }
+        else
+        {
+            _artifactDir = GetDefaultArtifactDir();
+        }
+        System.IO.Directory.CreateDirectory(_artifactDir);
+    }
 
     // ── Multi-Tab ──
     private readonly Dictionary<string, Models.DocumentTab> _openTabs = new();
@@ -58,6 +85,11 @@ public partial class MainWindow : Window
         ChatPanel.InsertToDocumentRequested += InsertAiResponseText;
         ChatPanel.CopyResponseRequested += CopyAiResponseText;
         ChatPanel.FilesAttached += OnFilesAttached;
+        ChatPanel.OpenArtifactFolderRequested += _ =>
+        {
+            UpdateArtifactDir();
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_artifactDir) { UseShellExecute = true });
+        };
 
         UpdatePlanBadge();
         UpdateLicenseBackstage();
@@ -157,7 +189,8 @@ public partial class MainWindow : Window
             },
         };
 
-        return new Services.DocumentGeneration.DocumentGenerationToolExecutor(null, callbacks);
+        UpdateArtifactDir();
+        return new Services.DocumentGeneration.DocumentGenerationToolExecutor(_artifactDir, callbacks);
     }
 
     // ── システムプロンプト構築 ────────────────────────────────

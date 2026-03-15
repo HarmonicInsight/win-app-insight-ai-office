@@ -757,7 +757,7 @@
                     <Grid Grid.Row="1">
                     <!-- Welcome Panel (visible when no file is open) -->
                     <Border x:Name="WelcomePanel" Background="{StaticResource BgPrimaryBrush}">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="680">
                             <TextBlock Text="Insight" FontSize="36" FontWeight="SemiBold"
                                        Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="AI Office" FontSize="28" FontWeight="Light"
@@ -766,35 +766,50 @@
                                        FontSize="14" Foreground="{StaticResource TextTertiaryBrush}"
                                        HorizontalAlignment="Center" Margin="0,0,0,28"/>
 
-                            <!-- 2 Feature Cards -->
-                            <UniformGrid Columns="2" Margin="0,0,0,20">
+                            <!-- 3 Feature Cards -->
+                            <UniformGrid Columns="3" Margin="0,0,0,20">
                                 <!-- Card 1: Edit Office -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="20,16"
-                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,6,0">
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
+                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,4,0">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="28"
+                                        <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="24"
                                                    Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                         <TextBlock x:Name="WelcomeEditTitle" Text="オフィスを編集する"
-                                                   FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                                         <TextBlock x:Name="WelcomeEditDesc"
                                                    Text="Word・Excel を直接編集&#x0a;PowerPoint のスライドを操作"
-                                                   FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
                                 <!-- Card 2: Create New -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="20,16"
-                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="6,0,0,0">
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
+                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="4,0,4,0">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="28"
+                                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="24"
                                                    Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                        <TextBlock x:Name="WelcomeCreateTitle" Text="新しい資料を作る"
-                                                   FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="WelcomeCreateTitle" Text="AI で資料を作る"
+                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                                         <TextBlock x:Name="WelcomeCreateDesc"
-                                                   Text="AI が要約・分析・翻訳して&#x0a;レポートやグラフを自動生成"
-                                                   FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   Text="要約・分析・翻訳から&#x0a;レポート・グラフを自動生成"
+                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Card 3: Tutorial -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
+                                        BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5" Margin="4,0,0,0"
+                                        Cursor="Hand" MouseLeftButtonUp="WelcomeTutorial_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="24"
+                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="チュートリアル"
+                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="サンプルデータで&#x0a;ワンクリック体験"
+                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>

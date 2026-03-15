@@ -104,6 +104,9 @@ public partial class MainWindow
 
     // ── Tutorial ──────────────────────────────────────────────────
 
+    private void WelcomeTutorial_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => Tutorial_Click(sender, new RoutedEventArgs());
+
     private void Tutorial_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new Views.TutorialDialog { Owner = this };

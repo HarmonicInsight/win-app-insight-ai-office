@@ -86,6 +86,52 @@ public partial class TutorialDialog : Window
 
         foreach (var card in cards)
             CardPanel.Children.Add(CreateCardUI(card));
+
+        // サンプル出力を見るボタン
+        CardPanel.Children.Add(CreateSampleOutputCard());
+    }
+
+    private Border CreateSampleOutputCard()
+    {
+        var border = new Border
+        {
+            Width = 250,
+            Margin = new Thickness(0, 0, 10, 10),
+            Padding = new Thickness(14, 12, 14, 12),
+            CornerRadius = new CornerRadius(8),
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16A34A")),
+            BorderThickness = new Thickness(2),
+            Cursor = Cursors.Hand,
+        };
+
+        var stack = new StackPanel();
+        var tagBorder = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(30, 22, 163, 74)),
+            CornerRadius = new CornerRadius(3),
+            Padding = new Thickness(6, 2, 6, 2),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 0, 6),
+        };
+        tagBorder.Child = new TextBlock { Text = "APIキー不要", FontSize = 9, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16A34A")) };
+        stack.Children.Add(tagBorder);
+        stack.Children.Add(new TextBlock { Text = "📂 サンプル出力を見る", FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = (Brush)FindResource("TextPrimaryBrush"), Margin = new Thickness(0, 0, 0, 4) });
+        stack.Children.Add(new TextBlock { Text = "AIが生成するExcel・Wordの\n品質をすぐに確認できます\n(Gold / Blue / Navy)", FontSize = 10, Foreground = (Brush)FindResource("TextSecondaryBrush"), TextWrapping = TextWrapping.Wrap, LineHeight = 16, Margin = new Thickness(0, 0, 0, 8) });
+        stack.Children.Add(new TextBlock { Text = "▶ フォルダを開く", FontSize = 10, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16A34A")) });
+        border.Child = stack;
+
+        border.MouseEnter += (_, _) => border.Background = new SolidColorBrush(Color.FromArgb(13, 22, 163, 74));
+        border.MouseLeave += (_, _) => border.Background = Brushes.White;
+
+        border.MouseLeftButtonUp += (_, _) =>
+        {
+            var sampleDir = Path.Combine(_assetsDir, "sample-outputs");
+            if (Directory.Exists(sampleDir))
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(sampleDir) { UseShellExecute = true });
+        };
+
+        return border;
     }
 
     /// <summary>tutorialsフォルダからデータファイルとプロンプトを読み込む</summary>

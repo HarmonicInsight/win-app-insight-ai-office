@@ -18,6 +18,7 @@ public partial class ChatPanelView : UserControl
     public event Action<string>? CopyResponseRequested;
     public event Action<string>? ThemeColorChanged;
     public event Action<List<AttachedFileInfo>>? FilesAttached;
+    public event Action<string>? OpenArtifactFolderRequested;
 
     /// <summary>現在選択中のテーマカラー名</summary>
     public string SelectedTheme { get; private set; } = "gold";
@@ -222,6 +223,26 @@ public partial class ChatPanelView : UserControl
         }
     }
 
+    // ── 成果物パネル ──
+
+    private readonly ObservableCollection<ArtifactFileInfo> _artifacts = new();
+
+    public void AddArtifact(string filePath)
+    {
+        _artifacts.Insert(0, new ArtifactFileInfo(filePath));
+        ArtifactList.ItemsSource = _artifacts;
+        ArtifactSection.Visibility = Visibility.Visible;
+    }
+
+    private void OpenArtifactFolder_Click(object sender, RoutedEventArgs e)
+        => OpenArtifactFolderRequested?.Invoke("");
+
+    private void ArtifactItem_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement el && el.Tag is string path && File.Exists(path))
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+    }
+
     private void RetryMessage_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not AiChatViewModel vm) return;
@@ -235,6 +256,30 @@ public partial class ChatPanelView : UserControl
                 break;
             }
         }
+    }
+}
+
+/// <summary>成果物ファイル情報</summary>
+public class ArtifactFileInfo
+{
+    public string FileName { get; set; }
+    public string FilePath { get; set; }
+    public string Icon { get; set; }
+
+    public ArtifactFileInfo(string filePath)
+    {
+        FilePath = filePath;
+        FileName = Path.GetFileName(filePath);
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        Icon = ext switch
+        {
+            ".xlsx" or ".csv" => "📊",
+            ".docx" => "📝",
+            ".pptx" => "📽️",
+            ".pdf" => "📕",
+            ".html" => "📄",
+            _ => "📁",
+        };
     }
 }
 

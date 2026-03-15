@@ -19,6 +19,7 @@ public partial class ChatPanelView : UserControl
     public event Action<string>? ThemeColorChanged;
     public event Action<List<AttachedFileInfo>>? FilesAttached;
     public event Action<string>? OpenArtifactFolderRequested;
+    public event Action<string>? OpenArtifactInEditorRequested;
 
     /// <summary>現在選択中のテーマカラー名</summary>
     public string SelectedTheme { get; private set; } = "gold";
@@ -240,7 +241,13 @@ public partial class ChatPanelView : UserControl
     private void ArtifactItem_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (sender is FrameworkElement el && el.Tag is string path && File.Exists(path))
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        {
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (ext is ".docx" or ".xlsx" or ".pptx" or ".pdf")
+                OpenArtifactInEditorRequested?.Invoke(path);
+            else
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        }
     }
 
     private void RetryMessage_Click(object sender, RoutedEventArgs e)

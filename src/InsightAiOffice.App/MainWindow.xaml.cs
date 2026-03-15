@@ -85,6 +85,7 @@ public partial class MainWindow : Window
         ChatPanel.InsertToDocumentRequested += InsertAiResponseText;
         ChatPanel.CopyResponseRequested += CopyAiResponseText;
         ChatPanel.FilesAttached += OnFilesAttached;
+        ChatPanel.OpenArtifactInEditorRequested += path => OpenFileByPath(path);
         ChatPanel.OpenArtifactFolderRequested += _ =>
         {
             UpdateArtifactDir();
@@ -105,6 +106,8 @@ public partial class MainWindow : Window
     private void OnWindowClosed(object? sender, EventArgs e)
     {
         _chatVm.PropertyChanged -= OnChatVmPropertyChanged;
+        // チャット履歴を保存
+        Services.ChatHistoryService.Save(_chatVm.ChatMessages);
     }
 
     // ── チャットメッセージフロー管理 ──────────────────────────
@@ -286,6 +289,11 @@ public partial class MainWindow : Window
             excelBs.IsVisibleChanged += (_, _) => { if (excelBs.IsVisible) ExcelRecentTab.IsSelected = true; };
         if (PptxRibbon.BackStage is Syncfusion.Windows.Tools.Controls.Backstage pptxBs)
             pptxBs.IsVisibleChanged += (_, _) => { if (pptxBs.IsVisible) PptxRecentTab.IsSelected = true; };
+
+        // チャット履歴を復元
+        var savedMessages = Services.ChatHistoryService.Load();
+        foreach (var msg in savedMessages)
+            _chatVm.ChatMessages.Add(msg);
 
         // デフォルトで AI コンシェルジュ（右パネル）を開く
         if (!_isRightPanelOpen)

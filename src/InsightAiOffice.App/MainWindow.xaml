@@ -274,9 +274,12 @@
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="印刷">
-                            <syncfusion:RibbonButton Label="印刷" SizeForm="Large" Click="BackstagePrint_Click" ToolTip="印刷 (Ctrl+P)">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                        <syncfusion:RibbonBar Header="出力">
+                            <syncfusion:RibbonButton Label="印刷" SizeForm="Small" Click="BackstagePrint_Click" ToolTip="印刷 (Ctrl+P)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="PDF出力" SizeForm="Small" Click="WordExportPdf_Click" ToolTip="PDFとしてエクスポート">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xEA90;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">

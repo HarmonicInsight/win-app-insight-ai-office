@@ -222,6 +222,37 @@ public partial class MainWindow
         StatusText.Text = LanguageManager.Format("Hint_TextExtracted", text.Length);
     }
 
+    private void WordExportPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (RichTextEditor?.Document == null) return;
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = "PDF|*.pdf",
+            DefaultExt = ".pdf",
+            FileName = Path.GetFileNameWithoutExtension(_currentDocPath) + ".pdf",
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                // Syncfusion DocIO でWord→PDF変換
+                using var docStream = new MemoryStream();
+                RichTextEditor.Save(docStream, Syncfusion.Windows.Controls.RichTextBoxAdv.FormatType.Docx);
+                docStream.Position = 0;
+
+                using var wordDoc = new Syncfusion.DocIO.DLS.WordDocument(docStream, Syncfusion.DocIO.FormatType.Docx);
+                var converter = new Syncfusion.DocToPDFConverter.DocToPDFConverter();
+                var pdfDoc = converter.ConvertToPDF(wordDoc);
+                pdfDoc.Save(dialog.FileName);
+                pdfDoc.Close(true);
+                converter.Dispose();
+
+                StatusText.Text = LanguageManager.Format("Hint_PdfExported", Path.GetFileName(dialog.FileName));
+            }
+            catch (Exception ex) { StatusText.Text = $"PDF: {ex.Message}"; }
+        }
+    }
+
     private void PptxExportPdf_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(_currentDocPath)) return;

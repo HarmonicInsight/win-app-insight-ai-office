@@ -147,6 +147,46 @@ public partial class MainWindow : Window
         _chatAttachedFiles = files;
     }
 
+    // ── ライセンスチェック ───────────────────────────────────
+
+    private void CheckLicenseAndRestrict()
+    {
+        var plan = _licenseManager.CurrentLicense.Plan;
+        var isActivated = _licenseManager.IsActivated;
+
+        // プランバッジ更新
+        UpdatePlanBadge();
+
+        if (!isActivated)
+        {
+            // FREE: AI チャット無効、保存無効
+            ChatPanel.IsEnabled = false;
+
+            // 初回起動時にライセンス案内
+            var result = System.Windows.MessageBox.Show(
+                "Insight AI Office をご利用いただきありがとうございます。\n\n" +
+                "AI コンシェルジュ機能をご利用いただくには、\nトライアルライセンスの登録が必要です。\n\n" +
+                "今すぐライセンスを登録しますか？",
+                "ライセンス登録のご案内",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Information);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                ShowLicenseDialog();
+                // 再チェック
+                if (_licenseManager.IsActivated)
+                    ChatPanel.IsEnabled = true;
+            }
+        }
+
+        // 期限切れ警告
+        if (_licenseManager.ShouldShowExpiryWarning)
+        {
+            StatusText.Text = $"ライセンス残り {_licenseManager.DaysRemaining} 日";
+        }
+    }
+
     // ── ツール実行ハンドラ ───────────────────────────────────
 
     private InsightCommon.AI.IToolExecutor CreateToolExecutor()
@@ -295,8 +335,11 @@ public partial class MainWindow : Window
         foreach (var msg in savedMessages)
             _chatVm.ChatMessages.Add(msg);
 
+        // ライセンスチェック: FREE版はAI機能を制限
+        CheckLicenseAndRestrict();
+
         // デフォルトで AI コンシェルジュ（右パネル）を開く
-        if (!_isRightPanelOpen)
+        if (!_isRightPanelOpen && _licenseManager.IsActivated)
             ToggleRightPanel();
     }
 

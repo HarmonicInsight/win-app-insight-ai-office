@@ -211,11 +211,17 @@ public partial class MainWindow
             ],
             FeatureMatrix = new()
             {
+                ["ai_concierge"] = [PlanCode.Trial, PlanCode.Biz, PlanCode.Ent],
+                ["prompt_management"] = [PlanCode.Trial, PlanCode.Biz, PlanCode.Ent],
                 ["export"] = [PlanCode.Trial, PlanCode.Biz, PlanCode.Ent],
             },
         });
         dialog.Owner = this;
         dialog.ShowDialog();
+
+        // ライセンス変更後にAI機能の有効/無効を更新
+        UpdatePlanBadge();
+        ChatPanel.IsEnabled = _licenseManager.IsActivated;
     }
 
     private void UpdatePlanBadge()

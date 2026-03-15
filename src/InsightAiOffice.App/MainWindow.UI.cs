@@ -110,25 +110,27 @@ public partial class MainWindow
     private void Tutorial_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new Views.TutorialDialog { Owner = this };
-        if (dialog.ShowDialog() != true) return;
-
-        // チャットパネルを開く
-        if (!_isRightPanelOpen)
-            ToggleRightPanel();
-
-        // 添付ファイルをセット
-        foreach (var file in dialog.SelectedFiles)
-            ChatPanel.AttachedFiles.Add(new Views.AttachedFileInfo(file));
-        _chatAttachedFiles = dialog.SelectedFiles
-            .Select(f => new Views.AttachedFileInfo(f)).ToList();
-
-        // プロンプトをセットして即AI実行
-        if (!string.IsNullOrEmpty(dialog.SelectedPrompt))
+        dialog.TutorialExecuteRequested += (files, prompt, outputFormat) =>
         {
-            _chatVm.AiInput = dialog.SelectedPrompt;
-            if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
-                _chatVm.ExecuteFromInputCommand.Execute(null);
-        }
+            // チャットパネルを開く
+            if (!_isRightPanelOpen)
+                ToggleRightPanel();
+
+            // 添付ファイルをセット
+            ChatPanel.ClearAttachments();
+            foreach (var file in files)
+                ChatPanel.AttachedFiles.Add(new Views.AttachedFileInfo(file));
+            _chatAttachedFiles = files.Select(f => new Views.AttachedFileInfo(f)).ToList();
+
+            // プロンプトをセットして即AI実行
+            if (!string.IsNullOrEmpty(prompt))
+            {
+                _chatVm.AiInput = prompt;
+                if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
+                    _chatVm.ExecuteFromInputCommand.Execute(null);
+            }
+        };
+        dialog.ShowDialog();
     }
 
     // ── Recent Files ───────────────────────────────────────────────

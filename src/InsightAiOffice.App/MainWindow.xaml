@@ -137,8 +137,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -305,8 +305,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="編集">
-                            <syncfusion:RibbonButton Label="検索と置換" SizeForm="Large" Click="FindReplace_Click" ToolTip="検索と置換 (Ctrl+H)">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="検索と置換" SizeForm="Small" Click="FindReplace_Click" ToolTip="検索と置換 (Ctrl+H)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="出力">
@@ -315,8 +315,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -445,8 +445,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="クリップボード">
-                            <syncfusion:RibbonButton Label="貼り付け" SizeForm="Large" Click="ExcelPaste_Click" ToolTip="貼り付け (Ctrl+V)">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE77F;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="貼り付け" SizeForm="Small" Click="ExcelPaste_Click" ToolTip="貼り付け (Ctrl+V)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE77F;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="切り取り" SizeForm="Small" Click="ExcelCut_Click" ToolTip="切り取り (Ctrl+X)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C6;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -512,13 +512,13 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="表示">
-                            <syncfusion:RibbonButton Label="枠の固定" SizeForm="Large" Click="ExcelFreezePanes_Click" ToolTip="ウィンドウ枠の固定">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE785;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="枠の固定" SizeForm="Small" Click="ExcelFreezePanes_Click" ToolTip="ウィンドウ枠の固定">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE785;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -650,8 +650,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="テキスト">
-                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Large" Click="PptxExtractAllText_Click" ToolTip="全スライドのテキストをクリップボードにコピー">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Small" Click="PptxExtractAllText_Click" ToolTip="全スライドのテキストをクリップボードにコピー">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="検索と置換" SizeForm="Small" Click="PptxFindReplace_Click" ToolTip="スライド内テキストの検索・一括置換">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -661,8 +661,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -782,8 +782,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="注釈">
-                            <syncfusion:RibbonButton Label="ハイライト" SizeForm="Large" Click="PdfHighlight_Click" ToolTip="テキストをハイライト">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7E6;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FFD700"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="ハイライト" SizeForm="Small" Click="PdfHighlight_Click" ToolTip="テキストをハイライト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7E6;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#FFD700"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="下線" SizeForm="Small" Click="PdfUnderline_Click" ToolTip="テキストに下線">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8DC;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -810,8 +810,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -820,8 +820,8 @@
                     </syncfusion:RibbonTab>
                     <syncfusion:RibbonTab Caption="編集">
                         <syncfusion:RibbonBar Header="ページ操作">
-                            <syncfusion:RibbonButton Label="回転（右）" SizeForm="Large" Click="PdfRotateRight_Click" ToolTip="現在のページを右に90°回転">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7AD;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="回転（右）" SizeForm="Small" Click="PdfRotateRight_Click" ToolTip="現在のページを右に90°回転">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7AD;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="回転（左）" SizeForm="Small" Click="PdfRotateLeft_Click" ToolTip="現在のページを左に90°回転">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE7AD;" FontFamily="Segoe MDL2 Assets" FontSize="14" RenderTransformOrigin="0.5,0.5"><TextBlock.RenderTransform><ScaleTransform ScaleX="-1"/></TextBlock.RenderTransform></TextBlock></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -831,16 +831,16 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="結合・分割">
-                            <syncfusion:RibbonButton Label="PDF結合" SizeForm="Large" Click="PdfMerge_Click" ToolTip="別のPDFを結合">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="PDF結合" SizeForm="Small" Click="PdfMerge_Click" ToolTip="別のPDFを結合">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="ページ分割" SizeForm="Large" Click="PdfSplit_Click" ToolTip="PDFをページ毎に分割">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xF156;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="ページ分割" SizeForm="Small" Click="PdfSplit_Click" ToolTip="PDFをページ毎に分割">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xF156;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="テキスト">
-                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Large" Click="PdfExtractText_Click" ToolTip="全ページのテキストを抽出してクリップボードにコピー">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="テキスト抽出" SizeForm="Small" Click="PdfExtractText_Click" ToolTip="全ページのテキストを抽出してクリップボードにコピー">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="テキスト検索" SizeForm="Small" Click="PdfSearchText_Click" ToolTip="PDF内のテキストを検索">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -922,8 +922,8 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
-                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Large" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="チュートリアル" SizeForm="Small" Click="Tutorial_Click" ToolTip="サンプルデータで機能を体験">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="ヘルプ" SizeForm="Small" Click="RibbonHelp_Click" ToolTip="ヘルプ (F1)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>

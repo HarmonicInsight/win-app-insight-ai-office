@@ -563,7 +563,8 @@ public partial class MainWindow : Window
         MainRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(MainRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText"), L("Project_Save") }),
+            (L("Menu_Project"), new[] { L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
             (L("Menu_Help"), new[] { L("Menu_Tutorial"), L("Menu_Help") }),
         });
         // Backstage: 新規プロジェクト / プロジェクトを開く / 上書き保存 / 別名保存 / [最近] / [sep] / 言語 / ライセンス / [sep] / 閉じる
@@ -575,9 +576,8 @@ public partial class MainWindow : Window
         WordRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(WordRibbon, 0, L("Menu_Home"), new[]
         {
-            ("Word", new[] { L("File_Save"), L("File_SaveAs") }),
-            (L("Menu_Project"), new[] { L("Project_Save") }),
-            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
+            (L("Menu_Project"), new[] { L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_Save"), L("File_SaveAs"), L("File_NewText") }),
             (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
             (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Format_Strikethrough") }),
             (L("Format_Paragraph"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight"), L("Format_BulletList") }),
@@ -590,9 +590,8 @@ public partial class MainWindow : Window
         ExcelRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(ExcelRibbon, 0, L("Menu_Home"), new[]
         {
-            ("Excel", new[] { L("File_SaveAs") }),
-            (L("Menu_Project"), new[] { L("Project_Save") }),
-            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
+            (L("Menu_Project"), new[] { L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_SaveAs"), L("File_NewText") }),
             (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
             (L("Excel_Clipboard"), new[] { L("Excel_Paste"), L("Excel_Cut"), L("Excel_Copy") }),
             (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Excel_Borders") }),
@@ -604,16 +603,24 @@ public partial class MainWindow : Window
 
         // ── PPTX Ribbon ──
         PptxRibbon.BackStageHeader = L("Menu_File");
-        // PPTX/Text は MainRibbon を共用するため ApplyTab 不要
+        // ── PPTX Ribbon ──
+        PptxRibbon.BackStageHeader = L("Menu_File");
+        ApplyTab(PptxRibbon, 0, L("Menu_Home"), new[]
+        {
+            (L("Menu_Project"), new[] { L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
+            (L("Pptx_Slide"), new[] { L("Pptx_Add"), L("Pptx_Duplicate"), L("Pptx_Delete"), L("Pptx_MoveUp"), L("Pptx_MoveDown") }),
+            (L("Pdf_Text"), new[] { L("Pdf_ExtractText"), L("Format_FindReplace"), L("Pptx_EditNotes") }),
+            (L("Menu_Help"), new[] { L("Menu_Tutorial"), L("Menu_Help") }),
+        });
         ApplyBackstage(PptxRibbon, L("File_Open"), null, L("File_CloseDoc"));
 
         // ── PDF Ribbon ──
         PdfRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(PdfRibbon, 0, L("Menu_Home"), new[]
         {
-            ("PDF", new[] { L("File_Save"), L("File_SaveAs"), L("Pdf_Print") }),
-            (L("Menu_Project"), new[] { L("Project_Save") }),
-            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
+            (L("Menu_Project"), new[] { L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_Save"), L("File_SaveAs"), L("Pdf_Print"), L("File_NewText") }),
             (L("Pdf_Annotation"), new[] { L("Pdf_Highlight"), L("Pdf_Underline"), L("Pdf_Strikethrough"), L("Pdf_Ink") }),
             (L("Pdf_Navigation"), new[] { L("Pdf_PrevPage"), L("Pdf_NextPage"), L("Pdf_ZoomIn"), L("Pdf_ZoomOut") }),
             (L("Menu_Help"), new[] { L("Menu_Tutorial"), L("Menu_Help") }),

@@ -15,4 +15,7 @@ public sealed class DocumentTab
 
     // PPTX: 選択中のスライドインデックス
     public int PptxSelectedSlide { get; set; }
+
+    // Text: テキストエディタの内容
+    public string? TextContent { get; set; }
 }

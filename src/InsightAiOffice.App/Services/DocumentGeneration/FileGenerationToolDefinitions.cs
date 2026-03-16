@@ -391,6 +391,78 @@ public static class FileGenerationToolDefinitions
         """),
     };
 
+    /// <summary>開いているWordドキュメントにテキストを挿入</summary>
+    public static ToolDefinition InsertDocumentText { get; } = new()
+    {
+        Name = "insert_document_text",
+        Description = """
+            開いているWordドキュメントの指定位置にテキストを挿入します。
+            末尾への追記、または指定テキストの後に挿入できます。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string", "description": "挿入するテキスト" },
+                "after": { "type": "string", "description": "この文字列の直後に挿入。省略時はドキュメント末尾に追記。" }
+            },
+            "required": ["text"]
+        }
+        """),
+    };
+
+    /// <summary>開いているExcelのセルに値を書き込み</summary>
+    public static ToolDefinition EditSpreadsheetCells { get; } = new()
+    {
+        Name = "edit_spreadsheet_cells",
+        Description = """
+            開いているExcelスプレッドシートのセルに値を書き込みます。
+            複数セルを一度に更新できます。シート名を指定可能。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "sheet": { "type": "string", "description": "シート名。省略時はアクティブシート。" },
+                "cells": {
+                    "type": "array",
+                    "description": "書き込むセルの配列",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "cell": { "type": "string", "description": "セル参照（例: A1, B3, C10）" },
+                            "value": { "type": "string", "description": "セルに書き込む値" }
+                        },
+                        "required": ["cell", "value"]
+                    }
+                }
+            },
+            "required": ["cells"]
+        }
+        """),
+    };
+
+    /// <summary>テキストファイルを新規作成して新しいタブで開く</summary>
+    public static ToolDefinition CreateTextFile { get; } = new()
+    {
+        Name = "create_text_file",
+        Description = """
+            テキストファイルを新規作成し、新しいタブで開きます。
+            文章の添削結果、翻訳結果、要約結果など、元のテキストを残したまま
+            新しいテキストとして出力する場合に使用します。
+            """,
+        InputSchema = Parse("""
+        {
+            "type": "object",
+            "properties": {
+                "title": { "type": "string", "description": "ファイル名（拡張子なし）。例: 添削済みメール" },
+                "content": { "type": "string", "description": "テキストの内容" }
+            },
+            "required": ["title", "content"]
+        }
+        """),
+    };
+
     /// <summary>全ツール定義を取得</summary>
     public static List<ToolDefinition> GetAllTools() => new()
     {
@@ -406,6 +478,9 @@ public static class FileGenerationToolDefinitions
         AddComment,
         HighlightText,
         FindAndReplace,
+        InsertDocumentText,
+        EditSpreadsheetCells,
+        CreateTextFile,
     };
 
     private static JsonObject Parse(string json) => JsonNode.Parse(json)!.AsObject();

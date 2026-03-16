@@ -28,12 +28,20 @@ public partial class MainWindow
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         var fileName = Path.GetFileName(filePath);
 
+        // .iaof プロジェクトファイルの場合は専用処理
+        if (ext == ".iaof")
+        {
+            _ = OpenProjectAsync(filePath);
+            return;
+        }
+
         var editorType = ext switch
         {
             ".docx" or ".doc" => "word",
             ".xlsx" or ".xls" or ".csv" => "excel",
             ".pptx" or ".ppt" => "pptx",
             ".pdf" => "pdf",
+            ".txt" or ".md" or ".log" or ".json" or ".xml" or ".html" or ".css" or ".js" => "text",
             _ => ""
         };
         if (string.IsNullOrEmpty(editorType))
@@ -73,6 +81,9 @@ public partial class MainWindow
             case "pdf":
                 OpenPdfViewer(filePath, fileName);
                 break;
+            case "text":
+                OpenTextEditor(filePath, fileName);
+                break;
         }
 
         if (DataContext is MainViewModel vm)
@@ -91,7 +102,6 @@ public partial class MainWindow
         {
             WelcomePanel.Visibility = Visibility.Collapsed;
             WordEditorPanel.Visibility = Visibility.Visible;
-            WordFileName.Text = displayName;
             FileNameLabel.Text = displayName;
             FileTypeLabel.Text = "DOCX";
             _activeEditorType = "word";
@@ -113,7 +123,6 @@ public partial class MainWindow
         {
             WelcomePanel.Visibility = Visibility.Collapsed;
             ExcelEditorPanel.Visibility = Visibility.Visible;
-            ExcelFileName.Text = displayName;
             FileNameLabel.Text = displayName;
             FileTypeLabel.Text = Path.GetExtension(filePath).TrimStart('.').ToUpperInvariant();
             _activeEditorType = "excel";
@@ -125,6 +134,29 @@ public partial class MainWindow
         catch (Exception ex)
         {
             StatusText.Text = $"Excel: {ex.Message}";
+        }
+    }
+
+    private void OpenTextEditor(string filePath, string displayName)
+    {
+        try
+        {
+            WelcomePanel.Visibility = Visibility.Collapsed;
+            TextEditorPanel.Visibility = Visibility.Visible;
+            FileNameLabel.Text = displayName;
+            FileTypeLabel.Text = Path.GetExtension(filePath).TrimStart('.').ToUpperInvariant();
+            _activeEditorType = "text";
+            SwitchRibbon("text");
+
+            var content = File.ReadAllText(filePath);
+            TextEditor.Text = content;
+            _textOriginal = content;
+            _textDirty = false;
+            StatusText.Text = Helpers.LanguageManager.Format("Doc_Loaded", displayName);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Text: {ex.Message}";
         }
     }
 
@@ -226,6 +258,43 @@ public partial class MainWindow
         RefreshTabBar();
     }
 
+    private async Task OpenProjectAsync(string projectPath)
+    {
+        try
+        {
+            _projectService?.Dispose();
+            _projectService = new Services.IaofProjectService();
+
+            var (docPath, editorType, chatHistory) = await _projectService.OpenAsync(projectPath);
+
+            // チャット履歴を復元
+            if (chatHistory.Sessions.Count > 0)
+            {
+                _chatVm.ChatMessages.Clear();
+                foreach (var msg in chatHistory.Sessions.SelectMany(s => s.Messages))
+                {
+                    var role = msg.Role switch
+                    {
+                        "user" => InsightCommon.AI.ChatRole.User,
+                        "assistant" => InsightCommon.AI.ChatRole.Assistant,
+                        _ => InsightCommon.AI.ChatRole.User,
+                    };
+                    _chatVm.ChatMessages.Add(new InsightCommon.AI.ChatMessageVm { Role = role, Content = msg.Content });
+                }
+
+                if (!_isRightPanelOpen) ToggleRightPanel();
+            }
+
+            // ドキュメントを開く
+            if (docPath != null)
+                OpenFileByPath(docPath);
+
+            StatusText.Text = $"プロジェクトを開きました: {Path.GetFileName(projectPath)}";
+            Title = $"{Path.GetFileNameWithoutExtension(projectPath)} — Insight AI Office";
+        }
+        catch (Exception ex) { StatusText.Text = $"プロジェクト: {ex.Message}"; }
+    }
+
     private void CloseEditor_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(_currentDocPath))
@@ -259,6 +328,7 @@ public partial class MainWindow
                 "excel" => ExtractExcelContent(),
                 "pptx" => ExtractPptxContent(_currentDocPath),
                 "pdf" => ExtractPdfContent(),
+                "text" => TextEditor?.Text ?? "",
                 _ => ""
             };
         }

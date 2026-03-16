@@ -15,20 +15,22 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Syncfusion ライセンス登録（Binary License Key — 各コンポーネント用）
-        // IAOF は Word + Excel + PPTX + Ribbon を統合するため、全コンポーネントのキーを登録
-        // 1. RichTextBoxAdv / DocIO (Word) — IOSD と同じキー
-        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVVRGFfV0JwV0VWYEs=");
-        // 2. SfSpreadsheet UI (Excel) — IOSH と同じキー
-        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-            "IAk8BicRIAEqCzQhAR8kAxMHIgRJXmFXf013TGhYfUFzdUpPaVVYVHdeSFhqQ3taZiUeUn1ecnJVRGJdUEZzXEFaZ0h4Un1GYQ==");
-        // 3. XlsIO (Excel library) — IOSH と同じキー
-        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVXQ2ZYVUF2XkBWYEs=");
-        // 4. Presentation (PowerPoint) — INSS と同じキー
-        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
-            "Ngo9BigBOggjHTQxAR8/V1JGaF5cXGpCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdlWX1ccXVXQmBfWEx0V0JWYEs=");
+        // --generate-samples: サンプル出力ファイル再生成モード（開発用）
+        if (e.Args.Length > 0 && e.Args[0] == "--generate-samples")
+        {
+            // Syncfusion ライセンスを先に登録してからサンプル生成
+            RegisterSyncfusionLicenses();
+            var assetsDir = e.Args.Length > 1
+                ? e.Args[1]
+                : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "assets");
+            Console.WriteLine("サンプル出力ファイルを再生成しています...");
+            Tools.SampleOutputGenerator.GenerateToSource(assetsDir);
+            Console.WriteLine("完了しました。");
+            Shutdown(0);
+            return;
+        }
+
+        RegisterSyncfusionLicenses();
 
         // カスタム WindowChrome タイトルバーが Syncfusion テーマで上書きされるのを防止
         Syncfusion.SfSkinManager.SfSkinManager.ApplyStylesOnApplication = false;
@@ -67,6 +69,26 @@ public partial class App : Application
                 LanguageManager.Get("Error_StartupError"), MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+    }
+
+    /// <summary>Syncfusion ライセンス登録（33.x — 各コンポーネント）</summary>
+    private static void RegisterSyncfusionLicenses()
+    {
+        // 1. UI Edition（Ribbon / SfSkinManager / 共通UI）
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "Ngo9BigBOggjGyl/VkV+XU9AclRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS3hTdURlWXpfeXZVRmVfVk91XA==");
+        // 2. DOCX Editor（SfRichTextBoxAdv / DocIO）
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "NxYtGyMROh0gHDMgDk1jX09FaFtGVmJLYVB3WmpQdldgdVRMZVVbQX9PIiBoS35RcEVgWHleeXRTRWBeUEJzVEFe");
+        // 3. Spreadsheet Editor（SfSpreadsheet / XlsIO）
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "IAk8BicRIAEqCzQhAR8kAxMHIgRJXmBXf01yQWhYfUFzdUpPaVVYVHdeSFhqQ3taZiUeUn1ecnJVRWFaUU12WUdbYEx8Un1GYA==");
+        // 4. PDF Viewer
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "Ix0oFS8QJAw9HSQvXkVjQlBacltJXGFWfVJpTGpQdk5xdV9DaVZUTWY/P1ZhSXxVdkZiX39XcHNUR2JeUE19XEE=");
+        // 5. Document SDK（DocToPDF / Presentation / Pdf）
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+            "NxYtFisQPR08Cit/VkV+XU9AclRDX3xKf0x/TGpQb19xflBPallYVBYiSV9jS3hTdURlWXZed3dcQmBVWU91XA==");
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs args)

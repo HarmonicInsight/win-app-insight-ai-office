@@ -11,10 +11,13 @@ public partial class MainWindow : Window
     private readonly Helpers.RecentFilesService _recentFiles;
     private readonly AiChatViewModel _chatVm;
     private bool _isRightPanelOpen;
-    private string _activeEditorType = ""; // "word", "excel", "pptx"
+    private string _activeEditorType = ""; // "word", "excel", "pptx", "text"
     private string _currentDocPath = "";
+    private bool _textDirty; // テキストエディタの変更検知
+    private string _textOriginal = ""; // テキストエディタの初期内容
     private List<Views.AttachedFileInfo> _chatAttachedFiles = new();
     private string _artifactDir = GetDefaultArtifactDir();
+    private Services.IaofProjectService? _projectService;
 
     private static string GetDefaultArtifactDir()
     {
@@ -100,7 +103,32 @@ public partial class MainWindow : Window
         VersionText.Text = $"v{version?.Major}.{version?.Minor}.{version?.Build}";
 
         Loaded += OnWindowLoaded;
+        Closing += OnWindowClosing;
         Closed += OnWindowClosed;
+        TextEditor.TextChanged += (_, _) =>
+        {
+            if (_activeEditorType == "text")
+                _textDirty = TextEditor.Text != _textOriginal;
+        };
+    }
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (_activeEditorType == "text" && _textDirty)
+        {
+            var result = System.Windows.MessageBox.Show(
+                "テキストが変更されています。保存しますか？",
+                "保存の確認",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Cancel) { e.Cancel = true; return; }
+            if (result == MessageBoxResult.Yes)
+            {
+                try { System.IO.File.WriteAllText(_currentDocPath, TextEditor.Text); }
+                catch { /* best effort */ }
+            }
+        }
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -159,8 +187,8 @@ public partial class MainWindow : Window
 
         if (!isActivated)
         {
-            // FREE: AI チャット無効、保存無効
-            ChatPanel.IsEnabled = false;
+            // FREE: AI 送信無効（GridSplitter等のレイアウト操作は維持）
+            ChatPanel.SetAiEnabled(false);
 
             // 初回起動時にライセンス案内
             var result = System.Windows.MessageBox.Show(
@@ -176,7 +204,7 @@ public partial class MainWindow : Window
                 ShowLicenseDialog();
                 // 再チェック
                 if (_licenseManager.IsActivated)
-                    ChatPanel.IsEnabled = true;
+                    ChatPanel.SetAiEnabled(true);
             }
         }
 
@@ -191,15 +219,37 @@ public partial class MainWindow : Window
 
     private InsightCommon.AI.IToolExecutor CreateToolExecutor()
     {
-        // SfRichTextBoxAdv の検索・置換は Selection API 経由で行う
+        // 検索・置換（Word / テキストエディタ 両対応）
         bool DoReplace(string find, string replacement)
         {
             return Dispatcher.Invoke(() =>
             {
                 try
                 {
+                    // テキストエディタの場合
+                    if (_activeEditorType == "text" && TextEditor != null)
+                    {
+                        var idx = TextEditor.Text.IndexOf(find, StringComparison.Ordinal);
+                        if (idx < 0) return false;
+                        TextEditor.Text = TextEditor.Text.Remove(idx, find.Length).Insert(idx, replacement);
+                        return true;
+                    }
+
+                    // PPTX の場合（OpenXML 経由）
+                    if (_activeEditorType == "pptx" && !string.IsNullOrEmpty(_currentDocPath))
+                    {
+                        var count = Services.PptxService.FindAndReplace(_currentDocPath, find, replacement);
+                        if (count > 0)
+                        {
+                            var sel = PptxSlideList.SelectedIndex;
+                            OpenPptxViewer(_currentDocPath, System.IO.Path.GetFileName(_currentDocPath));
+                            if (sel >= 0 && sel < PptxSlideList.Items.Count) PptxSlideList.SelectedIndex = sel;
+                        }
+                        return count > 0;
+                    }
+
+                    // Word エディタの場合
                     if (RichTextEditor == null) return false;
-                    // FindAndReplace はコマンド経由
                     var searchResult = RichTextEditor.Find(find, Syncfusion.Windows.Controls.RichTextBoxAdv.FindOptions.None);
                     if (searchResult == null) return false;
                     RichTextEditor.Selection.InsertText(replacement);
@@ -230,6 +280,103 @@ public partial class MainWindow : Window
                 while (DoReplace(find, replace)) count++;
                 return count;
             },
+            InsertDocumentText = (text, after) =>
+            {
+                return Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        // テキストエディタの場合
+                        if (_activeEditorType == "text" && TextEditor != null)
+                        {
+                            if (after != null)
+                            {
+                                var idx = TextEditor.Text.IndexOf(after, StringComparison.Ordinal);
+                                if (idx < 0) return false;
+                                TextEditor.Text = TextEditor.Text.Insert(idx + after.Length, text);
+                            }
+                            else
+                            {
+                                TextEditor.Text += "\n" + text;
+                            }
+                            return true;
+                        }
+
+                        // Word エディタの場合
+                        if (_activeEditorType != "word" || RichTextEditor == null) return false;
+                        if (after != null)
+                        {
+                            var found = RichTextEditor.Find(after, Syncfusion.Windows.Controls.RichTextBoxAdv.FindOptions.None);
+                            if (found == null) return false;
+                            RichTextEditor.Selection.InsertText(after + text);
+                        }
+                        else
+                        {
+                            System.Windows.Input.ApplicationCommands.SelectAll.Execute(null, RichTextEditor);
+                            var endPos = RichTextEditor.Selection.End;
+                            RichTextEditor.Selection.Select(endPos, endPos);
+                            RichTextEditor.Selection.InsertText("\n" + text);
+                        }
+                        return true;
+                    }
+                    catch { return false; }
+                });
+            },
+            EditSpreadsheetCells = (sheetName, cells) =>
+            {
+                return Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        if (_activeEditorType != "excel" || Spreadsheet?.ActiveSheet == null) return 0;
+
+                        var ws = Spreadsheet.ActiveSheet;
+
+                        // シート切替
+                        if (!string.IsNullOrEmpty(sheetName))
+                        {
+                            var targetSheet = Spreadsheet.Workbook?.Worksheets
+                                .Cast<dynamic>()
+                                .FirstOrDefault(s => (string)s.Name == sheetName);
+                            if (targetSheet != null) ws = targetSheet;
+                        }
+
+                        int count = 0;
+                        foreach (var (cellRef, value) in cells)
+                        {
+                            try
+                            {
+                                ws.Range[cellRef].Text = value;
+                                count++;
+                            }
+                            catch { /* skip invalid cell ref */ }
+                        }
+
+                        Spreadsheet?.ActiveGrid?.InvalidateCells();
+                        return count;
+                    }
+                    catch { return 0; }
+                });
+            },
+            CreateTextFile = (title, content) =>
+            {
+                return Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        var tempDir = System.IO.Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                            "HarmonicInsight", "InsightAiOffice", "Temp");
+                        System.IO.Directory.CreateDirectory(tempDir);
+                        var safeName = string.Join("_", title.Split(System.IO.Path.GetInvalidFileNameChars()));
+                        var filePath = System.IO.Path.Combine(tempDir, $"{safeName}.txt");
+                        System.IO.File.WriteAllText(filePath, content);
+                        OpenFileByPath(filePath);
+                        return filePath;
+                    }
+                    catch { return null; }
+                });
+            },
         };
 
         UpdateArtifactDir();
@@ -257,6 +404,15 @@ public partial class MainWindow : Window
               - add_comment: テキストにコメント追加
               - highlight_text: テキストを蛍光マーカーで強調
               - find_and_replace: テキストの検索・置換
+              - insert_document_text: 開いているWordにテキスト挿入（afterで挿入位置指定、省略で末尾追記）
+              - edit_spreadsheet_cells: 開いているExcelのセルに値を直接書き込み（cellでA1形式指定）
+              - create_text_file: テキストファイルを新規作成して新しいタブで開く
+
+              【重要ルール】
+              - ユーザーが開いているExcel/Wordの内容を修正するよう依頼 → edit_spreadsheet_cells / find_and_replace で直接編集
+              - PPTXのテキストを「ですます調に変更」「英語に翻訳」等 → find_and_replace を複数回呼び出して各テキストを置換
+              - テキストの添削・翻訳・要約など「元を残して新しい版を作る」依頼 → create_text_file で新しいタブに出力
+              - 新しいレポート・表を作る依頼 → generate_report / generate_spreadsheet でファイル生成
 
               【ツール呼び出しルール】
               ユーザーが校正・赤入れ・修正・ドキュメント作成を依頼した場合、
@@ -312,7 +468,7 @@ public partial class MainWindow : Window
     private void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
         InsightCommon.Theme.SyncfusionInitializer.ApplyTheme(
-            MainRibbon, WordRibbon, ExcelRibbon, PptxRibbon, Spreadsheet, RichTextEditor);
+            MainRibbon, WordRibbon, ExcelRibbon, PptxRibbon, PdfRibbon, TextRibbon, Spreadsheet, RichTextEditor);
 
         InsightCommon.UI.InsightScaleManager.Instance.ApplyToWindow(this);
 
@@ -368,14 +524,11 @@ public partial class MainWindow : Window
         LocalizeRecentTab(WordRecentTab, WordRecentTitle, WordRecentEmptyHint);
         LocalizeRecentTab(ExcelRecentTab, ExcelRecentTitle, ExcelRecentEmptyHint);
         LocalizeRecentTab(PptxRecentTab, PptxRecentTitle, PptxRecentEmptyHint);
+        LocalizeRecentTab(PdfRecentTab, PdfRecentTitle, PdfRecentEmptyHint);
 
         // Backstage (main)
         MainRibbon.BackStageHeader = L("Menu_File");
-        BS_Open.Header = L("BS_Open");
-        BS_Settings.Header = L("BS_Settings");
-        BS_LanguageTab.Header = L("BS_Language");
         BS_LanguageTitle.Text = L("BS_Language");
-        BS_CloseDoc.Header = L("BS_CloseDoc");
 
         // License + Language tabs (all backstages)
         LocalizeLicenseTab(BS_LicenseTab, LicenseTitleText, CurrentPlanLabel, LicenseOpenBtn);
@@ -389,10 +542,6 @@ public partial class MainWindow : Window
 
         // Welcome panel
         WelcomeTagline.Text = L("Welcome_Tagline");
-        WelcomeEditTitle.Text = L("Welcome_EditTitle");
-        WelcomeEditDesc.Text = L("Welcome_EditDesc");
-        WelcomeCreateTitle.Text = L("Welcome_CreateTitle");
-        WelcomeCreateDesc.Text = L("Welcome_CreateDesc");
         WelcomeOpenLabel.Text = L("Welcome_OpenLabel");
         WelcomeOpenDesc.Text = L("Welcome_OpenDesc");
         WelcomeChatLabel.Text = L("Welcome_ChatLabel");
@@ -414,20 +563,24 @@ public partial class MainWindow : Window
         MainRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(MainRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open") }),
-            (L("Menu_Help"), new[] { L("Menu_Help") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText"), L("Project_Save") }),
+            (L("Menu_Help"), new[] { L("Menu_Tutorial"), L("Menu_Help") }),
         });
-        ApplyBackstage(MainRibbon, L("File_Open"), L("BS_Recent"), L("File_Settings"), null, L("License_Title"));
+        // Backstage: 新規プロジェクト / プロジェクトを開く / 上書き保存 / 別名保存 / [最近] / [sep] / 言語 / ライセンス / [sep] / 閉じる
+        ApplyBackstage(MainRibbon,
+            L("Project_New"), L("Project_Open"), L("Project_Save"), L("Project_SaveAs"),
+            L("BS_Recent"), null, L("BS_Language"), L("License_Title"), null, L("File_CloseDoc"));
 
         // ── Word Ribbon ──
         WordRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(WordRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open"), L("File_Save"), L("File_SaveAs") }),
+            ("Word", new[] { L("File_Save"), L("File_SaveAs") }),
+            (L("Menu_Project"), new[] { L("Project_Save") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
             (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
             (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Format_Strikethrough") }),
             (L("Format_Paragraph"), new[] { L("Format_AlignLeft"), L("Format_AlignCenter"), L("Format_AlignRight"), L("Format_BulletList") }),
-            (L("Format_Insert"), new[] { L("Format_InsertImage") }),
             (L("Format_Edit"), new[] { L("Format_FindReplace") }),
             (L("File_Print"), new[] { L("File_Print") }),
         });
@@ -437,7 +590,9 @@ public partial class MainWindow : Window
         ExcelRibbon.BackStageHeader = L("Menu_File");
         ApplyTab(ExcelRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open"), L("File_Save") }),
+            ("Excel", new[] { L("File_SaveAs") }),
+            (L("Menu_Project"), new[] { L("Project_Save") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
             (L("Format_UndoRedo"), new[] { L("Format_Undo"), L("Format_Redo") }),
             (L("Excel_Clipboard"), new[] { L("Excel_Paste"), L("Excel_Cut"), L("Excel_Copy") }),
             (L("Format_Font"), new[] { L("Format_Bold"), L("Format_Italic"), L("Format_Underline"), L("Excel_Borders") }),
@@ -449,13 +604,27 @@ public partial class MainWindow : Window
 
         // ── PPTX Ribbon ──
         PptxRibbon.BackStageHeader = L("Menu_File");
-        ApplyTab(PptxRibbon, 0, L("Menu_Home"), new[]
+        // PPTX/Text は MainRibbon を共用するため ApplyTab 不要
+        ApplyBackstage(PptxRibbon, L("File_Open"), null, L("File_CloseDoc"));
+
+        // ── PDF Ribbon ──
+        PdfRibbon.BackStageHeader = L("Menu_File");
+        ApplyTab(PdfRibbon, 0, L("Menu_Home"), new[]
         {
-            (L("Menu_File"), new[] { L("File_Open"), L("Pptx_ExportPdf") }),
-            (L("Pptx_SlideOps"), new[] { L("Pptx_Add"), L("Pptx_Duplicate"), L("Pptx_Delete"), L("Pptx_MoveUp"), L("Pptx_MoveDown") }),
-            (L("Pptx_SlideInfo"), new[] { L("Pptx_ExtractText") }),
+            ("PDF", new[] { L("File_Save"), L("File_SaveAs"), L("Pdf_Print") }),
+            (L("Menu_Project"), new[] { L("Project_Save") }),
+            (L("Menu_File"), new[] { L("File_Open"), L("File_NewText") }),
+            (L("Pdf_Annotation"), new[] { L("Pdf_Highlight"), L("Pdf_Underline"), L("Pdf_Strikethrough"), L("Pdf_Ink") }),
+            (L("Pdf_Navigation"), new[] { L("Pdf_PrevPage"), L("Pdf_NextPage"), L("Pdf_ZoomIn"), L("Pdf_ZoomOut") }),
+            (L("Menu_Help"), new[] { L("Menu_Tutorial"), L("Menu_Help") }),
         });
-        ApplyBackstage(PptxRibbon, L("File_Open"), L("Pptx_ExportPdf"), null, L("File_CloseDoc"));
+        ApplyTab(PdfRibbon, 1, L("Pdf_Edit"), new[]
+        {
+            (L("Pdf_PageOps"), new[] { L("Pdf_RotateRight"), L("Pdf_RotateLeft"), L("Pdf_DeletePage") }),
+            (L("Pdf_MergeSplit"), new[] { L("Pdf_Merge"), L("Pdf_Split") }),
+            (L("Pdf_Text"), new[] { L("Pdf_ExtractText"), L("Pdf_SearchText") }),
+        });
+        ApplyBackstage(PdfRibbon, L("File_Open"), L("BS_Recent"), L("BS_Settings"), L("File_CloseDoc"));
     }
 
     private static void LocalizeRecentTab(
@@ -494,8 +663,15 @@ public partial class MainWindow : Window
             bar.Header = bars[i].header;
             for (var j = 0; j < bars[i].labels.Length && j < bar.Items.Count; j++)
             {
-                if (bar.Items[j] is Syncfusion.Windows.Tools.Controls.RibbonButton btn)
-                    btn.Label = bars[i].labels[j];
+                switch (bar.Items[j])
+                {
+                    case Syncfusion.Windows.Tools.Controls.RibbonButton btn:
+                        btn.Label = bars[i].labels[j];
+                        break;
+                    case Syncfusion.Windows.Tools.Controls.SplitButton split:
+                        split.Label = bars[i].labels[j];
+                        break;
+                }
             }
         }
     }
@@ -526,6 +702,12 @@ public partial class MainWindow : Window
 
     // ── Ribbon Switching ──────────────────────────────────────────
 
+    private void ScaleUp_Click(object sender, RoutedEventArgs e) =>
+        InsightCommon.UI.InsightScaleManager.Instance.ZoomIn();
+
+    private void ScaleDown_Click(object sender, RoutedEventArgs e) =>
+        InsightCommon.UI.InsightScaleManager.Instance.ZoomOut();
+
     private void SwitchRibbon(string editorType)
     {
         DefaultRibbonPanel.Visibility = Visibility.Collapsed;
@@ -533,6 +715,7 @@ public partial class MainWindow : Window
         ExcelRibbonPanel.Visibility = Visibility.Collapsed;
         PptxRibbonPanel.Visibility = Visibility.Collapsed;
         PdfRibbonPanel.Visibility = Visibility.Collapsed;
+        TextRibbonPanel.Visibility = Visibility.Collapsed;
 
         Syncfusion.SfSkinManager.SfSkinManager.SetTheme(MainRibbon, new Syncfusion.SfSkinManager.Theme("Office2019White"));
 
@@ -550,6 +733,10 @@ public partial class MainWindow : Window
             case "pptx":
                 PptxRibbonPanel.Visibility = Visibility.Visible;
                 Syncfusion.SfSkinManager.SfSkinManager.SetTheme(PptxRibbon, new Syncfusion.SfSkinManager.Theme("Office2019White"));
+                break;
+            case "text":
+                // Text はデフォルトリボンを共用
+                DefaultRibbonPanel.Visibility = Visibility.Visible;
                 break;
             case "pdf":
                 PdfRibbonPanel.Visibility = Visibility.Visible;

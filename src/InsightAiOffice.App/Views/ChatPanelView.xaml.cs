@@ -24,10 +24,24 @@ public partial class ChatPanelView : UserControl
     /// <summary>現在選択中のテーマカラー名</summary>
     public string SelectedTheme { get; private set; } = "gold";
 
+    /// <summary>
+    /// AI 送信機能の有効/無効を切り替える。
+    /// GridSplitter やスクロールなどのレイアウト操作は常に有効のまま、
+    /// 入力・送信系コントロールのみを無効化する。
+    /// </summary>
+    public void SetAiEnabled(bool enabled)
+    {
+        ChatInput.IsEnabled = enabled;
+        InputAreaBorder.Opacity = enabled ? 1.0 : 0.5;
+    }
+
     /// <summary>添付ファイル一覧</summary>
     public ObservableCollection<AttachedFileInfo> AttachedFiles { get; } = new();
 
     private Storyboard? _loadingStoryboard;
+
+    /// <summary>選択中のモデルID</summary>
+    public string SelectedModelId { get; private set; } = InsightCommon.AI.ClaudeModels.DefaultStandardModel;
 
     public ChatPanelView()
     {
@@ -36,7 +50,47 @@ public partial class ChatPanelView : UserControl
         ChatInput.TextChanged += ChatInput_TextChanged;
         AttachedFilesList.ItemsSource = AttachedFiles;
 
-        Loaded += (_, _) => UpdatePlaceholder();
+        Loaded += (_, _) =>
+        {
+            UpdatePlaceholder();
+            InitModelCombo();
+        };
+    }
+
+    private void InitModelCombo()
+    {
+        // モデル特性（ToolTip で表示）
+        var tips = new Dictionary<string, string>
+        {
+            [InsightCommon.AI.ClaudeModels.HaikuId] = "高速・低コスト — 簡単な質問・要約向け",
+            [InsightCommon.AI.ClaudeModels.SonnetId] = "バランス型（推奨）— 文書生成・Excel編集・分析",
+            [InsightCommon.AI.ClaudeModels.OpusId] = "最高品質 — 複雑な分析・大量データ処理・高精度生成",
+        };
+
+        ModelCombo.Items.Clear();
+        foreach (var m in InsightCommon.AI.ClaudeModels.Registry)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = $"{m.CostIndicator} {m.Label}",
+                Tag = m.Id,
+                ToolTip = tips.TryGetValue(m.Id, out var tip) ? tip : m.Label,
+            };
+            ModelCombo.Items.Add(item);
+            if (m.Id == InsightCommon.AI.ClaudeModels.DefaultStandardModel)
+                ModelCombo.SelectedItem = item;
+        }
+    }
+
+    private void ModelCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ModelCombo?.SelectedItem is ComboBoxItem item && item.Tag is string modelId)
+        {
+            SelectedModelId = modelId;
+            // ViewModelにも反映
+            if (DataContext is AiChatViewModel vm)
+                vm.SelectedModelId = modelId;
+        }
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

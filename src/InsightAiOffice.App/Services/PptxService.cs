@@ -187,6 +187,114 @@ public static class PptxService
         catch { return 0; }
     }
 
+    // ── ノート読み書き ──
+
+    /// <summary>スライドの発表者ノートを取得</summary>
+    public static string? GetSlideNotes(string pptxPath, int slideIndex)
+    {
+        if (!File.Exists(pptxPath)) return null;
+        using var doc = PresentationDocument.Open(pptxPath, false);
+        var slideIds = doc.PresentationPart?.Presentation.SlideIdList?.ChildElements
+            .OfType<SlideId>().ToList();
+        if (slideIds == null || slideIndex < 0 || slideIndex >= slideIds.Count) return null;
+
+        var relId = slideIds[slideIndex].RelationshipId?.Value;
+        if (relId == null) return null;
+        var slidePart = (SlidePart)doc.PresentationPart!.GetPartById(relId);
+        var notesPart = slidePart.NotesSlidePart;
+        if (notesPart == null) return null;
+
+        return string.Join("\n",
+            notesPart.NotesSlide.Descendants<DocumentFormat.OpenXml.Drawing.Text>()
+                .Select(t => t.Text)
+                .Where(t => !string.IsNullOrWhiteSpace(t)));
+    }
+
+    /// <summary>スライドの発表者ノートを設定</summary>
+    public static void SetSlideNotes(string pptxPath, int slideIndex, string notes)
+    {
+        if (!File.Exists(pptxPath)) return;
+        using var doc = PresentationDocument.Open(pptxPath, true);
+        var slideIds = doc.PresentationPart?.Presentation.SlideIdList?.ChildElements
+            .OfType<SlideId>().ToList();
+        if (slideIds == null || slideIndex < 0 || slideIndex >= slideIds.Count) return;
+
+        var relId = slideIds[slideIndex].RelationshipId?.Value;
+        if (relId == null) return;
+        var slidePart = (SlidePart)doc.PresentationPart!.GetPartById(relId);
+
+        // ノートパートがなければ作成
+        var notesPart = slidePart.NotesSlidePart;
+        if (notesPart == null)
+        {
+            notesPart = slidePart.AddNewPart<NotesSlidePart>();
+            notesPart.NotesSlide = new DocumentFormat.OpenXml.Presentation.NotesSlide(
+                new DocumentFormat.OpenXml.Presentation.CommonSlideData(
+                    new DocumentFormat.OpenXml.Presentation.ShapeTree()));
+        }
+
+        // 既存のテキストボディを探すか新規作成
+        var body = notesPart.NotesSlide.Descendants<DocumentFormat.OpenXml.Drawing.TextBody>().FirstOrDefault();
+        if (body != null)
+        {
+            // 既存パラグラフをクリアして新規設定
+            body.RemoveAllChildren<DocumentFormat.OpenXml.Drawing.Paragraph>();
+        }
+        else
+        {
+            var sp = notesPart.NotesSlide.CommonSlideData?.ShapeTree;
+            if (sp == null) return;
+            var shape = new DocumentFormat.OpenXml.Presentation.Shape();
+            body = new DocumentFormat.OpenXml.Drawing.TextBody();
+            shape.Append(body);
+            sp.Append(shape);
+        }
+
+        foreach (var line in notes.Split('\n'))
+        {
+            var para = new DocumentFormat.OpenXml.Drawing.Paragraph();
+            var run = new DocumentFormat.OpenXml.Drawing.Run();
+            run.Append(new DocumentFormat.OpenXml.Drawing.Text(line));
+            para.Append(run);
+            body.Append(para);
+        }
+
+        doc.Save();
+    }
+
+    // ── テキスト検索・置換 ──
+
+    /// <summary>PPTX 内の全スライドでテキストを検索・置換する（OpenXML）</summary>
+    public static int FindAndReplace(string pptxPath, string find, string replace)
+    {
+        if (!File.Exists(pptxPath) || string.IsNullOrEmpty(find)) return 0;
+
+        int count = 0;
+        using var doc = PresentationDocument.Open(pptxPath, true);
+        var slideIds = doc.PresentationPart?.Presentation.SlideIdList?.ChildElements
+            .OfType<SlideId>().ToList();
+        if (slideIds == null) return 0;
+
+        foreach (var slideId in slideIds)
+        {
+            var relId = slideId.RelationshipId?.Value;
+            if (relId == null) continue;
+            var slidePart = (SlidePart)doc.PresentationPart!.GetPartById(relId);
+
+            foreach (var textNode in slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>())
+            {
+                if (textNode.Text.Contains(find))
+                {
+                    textNode.Text = textNode.Text.Replace(find, replace);
+                    count++;
+                }
+            }
+        }
+
+        doc.Save();
+        return count;
+    }
+
     // ── PDF エクスポート ──
 
     public static void ConvertToPdf(string pptxPath, string outputPath)

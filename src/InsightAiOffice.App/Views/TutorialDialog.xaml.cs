@@ -239,12 +239,13 @@ public partial class TutorialDialog : Window
         border.MouseEnter += (_, _) => border.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(card.Color)) { Opacity = 0.05 };
         border.MouseLeave += (_, _) => border.Background = Brushes.White;
 
-        // Click
+        // Click — 選択したら即閉じてAI実行
         border.MouseLeftButtonUp += (_, _) =>
         {
             var (files, prompt) = LoadTutorialData(card.FolderName);
             TutorialExecuteRequested?.Invoke(files, prompt, "auto");
-            runBtn.Text = "✔ セット完了";
+            DialogResult = true;
+            Close();
         };
 
         return border;

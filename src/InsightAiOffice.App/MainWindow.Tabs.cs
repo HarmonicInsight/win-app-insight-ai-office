@@ -34,6 +34,10 @@ public partial class MainWindow
                 tab.PptxSelectedSlide = PptxSlideList.SelectedIndex;
                 break;
 
+            case "text":
+                tab.TextContent = TextEditor.Text;
+                break;
+
             // Excel: SfSpreadsheet auto-saves changes to the open file internally,
             // no explicit state capture needed.
         }
@@ -48,7 +52,6 @@ public partial class MainWindow
             case "word":
                 WelcomePanel.Visibility = Visibility.Collapsed;
                 WordEditorPanel.Visibility = Visibility.Visible;
-                WordFileName.Text = tab.FileName;
                 _activeEditorType = "word";
                 SwitchRibbon("word");
 
@@ -67,7 +70,6 @@ public partial class MainWindow
             case "excel":
                 WelcomePanel.Visibility = Visibility.Collapsed;
                 ExcelEditorPanel.Visibility = Visibility.Visible;
-                ExcelFileName.Text = tab.FileName;
                 _activeEditorType = "excel";
                 SwitchRibbon("excel");
                 Spreadsheet.Open(tab.FilePath);
@@ -82,6 +84,17 @@ public partial class MainWindow
             case "pdf":
                 OpenPdfViewer(tab.FilePath, tab.FileName);
                 break;
+
+            case "text":
+                WelcomePanel.Visibility = Visibility.Collapsed;
+                TextEditorPanel.Visibility = Visibility.Visible;
+                _activeEditorType = "text";
+                SwitchRibbon("text");
+                var textContent = tab.TextContent ?? File.ReadAllText(tab.FilePath);
+                TextEditor.Text = textContent;
+                _textOriginal = textContent;
+                _textDirty = false;
+                break;
         }
 
         _currentDocPath = tab.FilePath;
@@ -92,6 +105,7 @@ public partial class MainWindow
             "excel" => Path.GetExtension(tab.FilePath).TrimStart('.').ToUpperInvariant(),
             "pptx" => "PPTX",
             "pdf" => "PDF",
+            "text" => Path.GetExtension(tab.FilePath).TrimStart('.').ToUpperInvariant(),
             _ => ""
         };
 
@@ -102,6 +116,7 @@ public partial class MainWindow
     {
         WordEditorPanel.Visibility = Visibility.Collapsed;
         ExcelEditorPanel.Visibility = Visibility.Collapsed;
+        TextEditorPanel.Visibility = Visibility.Collapsed;
         PptxInfoPanel.Visibility = Visibility.Collapsed;
         PdfViewerPanel.Visibility = Visibility.Collapsed;
         WelcomePanel.Visibility = Visibility.Collapsed;
@@ -115,6 +130,7 @@ public partial class MainWindow
     {
         if (filePath == _currentDocPath) return;
         if (!_openTabs.ContainsKey(filePath)) return;
+        if (!ConfirmSaveTextIfDirty()) return;
 
         SaveCurrentTabState();
         RestoreTabState(_openTabs[filePath]);
@@ -130,8 +146,44 @@ public partial class MainWindow
 
     // ── Tab Close ────────────────────────────────────────────────
 
+    /// <summary>テキストエディタの未保存変更を確認。true=続行OK, false=キャンセル</summary>
+    private bool ConfirmSaveTextIfDirty()
+    {
+        if (_activeEditorType != "text" || !_textDirty) return true;
+
+        var result = System.Windows.MessageBox.Show(
+            "テキストが変更されています。保存しますか？",
+            "保存の確認",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Cancel) return false;
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                File.WriteAllText(_currentDocPath, TextEditor.Text);
+                _textDirty = false;
+                _textOriginal = TextEditor.Text;
+                StatusText.Text = $"保存しました: {Path.GetFileName(_currentDocPath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"保存エラー: {ex.Message}";
+                return false;
+            }
+        }
+        else
+        {
+            // No — 変更を破棄
+            _textDirty = false;
+        }
+        return true;
+    }
+
     private void CloseTab(string filePath)
     {
+        if (filePath == _currentDocPath && !ConfirmSaveTextIfDirty()) return;
         if (!_openTabs.Remove(filePath)) return;
         _tabOrder.Remove(filePath);
 

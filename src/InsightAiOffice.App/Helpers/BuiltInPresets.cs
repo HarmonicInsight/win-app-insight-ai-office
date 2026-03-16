@@ -4905,5 +4905,200 @@ batch_generate ツールを使って一括生成してください。
             PromptEn = "Create both Japanese and English versions of this document.\n\n━━━ 日本語版 ━━━\n(Refined Japanese version)\n\n━━━ English Version ━━━\n(Natural English version)\n\n- Not literal translation — natural in each language\n- Append a glossary of key terms",
             Icon = "🌍", RequiresContextData = true,
         },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ メール（Email）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_email_proofread",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "メール添削", LabelEn = "Proofread Email",
+            PromptJa = "以下のメール文を添削してください。\n\n【チェック項目】\n1. 敬語・ビジネスマナーの適切さ\n2. 誤字脱字・文法\n3. 簡潔さ（冗長な表現の削除）\n4. 宛名・署名の形式\n\n添削結果は create_text_file ツールで新しいタブに出力してください。\n元のメールは残したまま、修正版を「添削済みメール」として作成してください。",
+            PromptEn = "Proofread the following email.\n\nCheck: politeness, grammar, conciseness, format.\nOutput the corrected version using create_text_file tool as a new tab.",
+            Icon = "✉️", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_rewrite",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "メール作成・清書", LabelEn = "Draft / Rewrite Email",
+            PromptJa = "以下の内容をもとに、ビジネスメールとして体裁を整えてください。\n\n【要件】\n・適切な件名を提案\n・宛名（様）、挨拶文、本文、署名の構成\n・簡潔で丁寧なビジネス日本語\n\n結果は create_text_file ツールで「送信用メール」として新しいタブに出力してください。",
+            PromptEn = "Based on the following content, draft a professional business email.\n\n- Suggest a subject line\n- Include greeting, body, and closing\n- Concise and polite\n\nOutput using create_text_file as a new tab.",
+            Icon = "📧", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_translate",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "海外メール翻訳", LabelEn = "Translate Email",
+            PromptJa = "以下のメールを翻訳してください。\n\n・英語メール → 自然な日本語に翻訳\n・日本語メール → 自然なビジネス英語に翻訳\n・専門用語は原語を括弧書きで併記\n・文化的なニュアンスの違いがあれば注記\n\n翻訳結果は create_text_file ツールで新しいタブに出力してください。",
+            PromptEn = "Translate the following email.\n\n- English → natural Japanese / Japanese → natural business English\n- Keep technical terms with original in parentheses\n- Note cultural nuance differences\n\nOutput using create_text_file as a new tab.",
+            Icon = "🌐", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_reply",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "返信メール作成", LabelEn = "Draft Reply",
+            PromptJa = "以下のメールに対する返信を作成してください。\n\n【要件】\n・相手のメール内容を踏まえた適切な返信\n・丁寧で簡潔なビジネス日本語\n・必要に応じて確認事項や質問を含める\n\n返信案は create_text_file ツールで「返信案」として新しいタブに出力してください。",
+            PromptEn = "Draft a reply to the following email.\n\n- Address the sender's points\n- Polite and concise business language\n- Include clarifications if needed\n\nOutput using create_text_file as a new tab.",
+            Icon = "↩️", RequiresContextData = true,
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ 文章処理（Text Processing）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_text_rewrite",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "文章リライト", LabelEn = "Rewrite Text",
+            PromptJa = "以下の文章を、意味を変えずにより読みやすくリライトしてください。\n\n・冗長な表現を削除\n・論理の流れを整理\n・適切な段落分け\n\nリライト結果は create_text_file ツールで新しいタブに出力してください。",
+            PromptEn = "Rewrite the following text to improve readability while preserving meaning.\n\nOutput using create_text_file as a new tab.",
+            Icon = "✍️", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_text_summarize",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "長文要約", LabelEn = "Summarize Long Text",
+            PromptJa = "以下の長い文章を要約してください。\n\n【出力フォーマット】\n■ 一言要約（1文）\n■ 要点（箇条書き5〜10項目）\n■ 詳細要約（200〜400字）\n\n要約結果は create_text_file ツールで「要約」として新しいタブに出力してください。",
+            PromptEn = "Summarize the following long text.\n\n■ One-line summary\n■ Key points (5-10 bullets)\n■ Detailed summary (200-400 chars)\n\nOutput using create_text_file as a new tab.",
+            Icon = "📝", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_text_translate_ja_en",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "日英翻訳", LabelEn = "Translate JA↔EN",
+            PromptJa = "以下の文章を翻訳してください。\n・日本語の場合 → 自然な英語に\n・英語の場合 → 自然な日本語に\n・専門用語は原語を併記\n\n翻訳結果は create_text_file ツールで新しいタブに出力してください。",
+            PromptEn = "Translate the following text.\n- Japanese → natural English\n- English → natural Japanese\n\nOutput using create_text_file as a new tab.",
+            Icon = "🔄", RequiresContextData = true,
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ ドキュメント翻訳（全形式対応）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_doc_translate_to_en",
+            CategoryJa = "翻訳", CategoryEn = "Translation",
+            LabelJa = "開いているファイルを英語に翻訳", LabelEn = "Translate Document to English",
+            PromptJa = "開いているドキュメントの内容を英語に翻訳してください。\n\n【ルール】\n・Excel → edit_spreadsheet_cells で各セルを英訳\n・Word/Text → find_and_replace で段落ごとに英訳\n・PPTX → find_and_replace でスライドテキストを英訳\n・自然なビジネス英語にする（直訳しない）\n・専門用語は原語を括弧書きで併記\n・元のフォーマット（書式・レイアウト）を維持",
+            PromptEn = "Translate the open document to English using the appropriate edit tools.",
+            Icon = "🇺🇸", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_doc_translate_to_ja",
+            CategoryJa = "翻訳", CategoryEn = "Translation",
+            LabelJa = "開いているファイルを日本語に翻訳", LabelEn = "Translate Document to Japanese",
+            PromptJa = "開いているドキュメントの内容を日本語に翻訳してください。\n\n【ルール】\n・Excel → edit_spreadsheet_cells で各セルを和訳\n・Word/Text → find_and_replace で段落ごとに和訳\n・PPTX → find_and_replace でスライドテキストを和訳\n・自然なビジネス日本語にする（直訳しない）\n・専門用語は原語を括弧書きで併記\n・元のフォーマット（書式・レイアウト）を維持",
+            PromptEn = "Translate the open document to Japanese using the appropriate edit tools.",
+            Icon = "🇯🇵", RequiresContextData = true,
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ メール追加（Email Extended）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_email_apology",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "お詫びメール作成", LabelEn = "Apology Email",
+            PromptJa = "以下の状況に基づいて、お詫びのビジネスメールを作成してください。\n\n【要件】\n・謝罪の意を明確に伝える\n・原因と対策を簡潔に説明\n・今後の対応を具体的に記載\n・丁寧すぎず、誠実なトーンで\n\n結果は create_text_file で「お詫びメール」として新しいタブに出力してください。",
+            PromptEn = "Draft an apology business email. Output using create_text_file.",
+            Icon = "🙇", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_thanks",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "お礼メール作成", LabelEn = "Thank You Email",
+            PromptJa = "以下の内容に基づいて、お礼のビジネスメールを作成してください。\n\n【要件】\n・感謝の気持ちを具体的に伝える\n・次のアクションや今後の関係に触れる\n・簡潔で温かみのあるトーン\n\n結果は create_text_file で「お礼メール」として新しいタブに出力してください。",
+            PromptEn = "Draft a thank you business email. Output using create_text_file.",
+            Icon = "🙏", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_followup",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "催促・フォローアップメール", LabelEn = "Follow-up Email",
+            PromptJa = "以下の状況に基づいて、催促またはフォローアップのメールを作成してください。\n\n【要件】\n・相手に失礼にならない丁寧な催促\n・期日や依頼内容を明確に再掲\n・相手の状況に配慮した表現\n\n結果は create_text_file で「フォローアップメール」として新しいタブに出力してください。",
+            PromptEn = "Draft a polite follow-up/reminder email. Output using create_text_file.",
+            Icon = "⏰", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_email_introduction",
+            CategoryJa = "メール", CategoryEn = "Email",
+            LabelJa = "製品・サービス案内メール", LabelEn = "Product Introduction Email",
+            PromptJa = "以下の内容をもとに、製品・サービス案内のビジネスメールを作成してください。\n\n【要件】\n・件名を提案\n・相手のメリットを先に伝える\n・機能の羅列ではなく価値を伝える\n・次のステップ（デモ、打合せ等）を提案\n\n結果は create_text_file で「案内メール」として新しいタブに出力してください。",
+            PromptEn = "Draft a product/service introduction email. Output using create_text_file.",
+            Icon = "📨", RequiresContextData = true,
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ 文体変換（Style Conversion）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_style_desu_masu",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "ですます調に統一", LabelEn = "Convert to Polite Style",
+            PromptJa = "開いているドキュメントのテキストを「ですます調」に統一してください。\n\n【ルール】\n・「である」「だ」→「です」「ます」に変換\n・find_and_replace を使って直接変更\n・文意を変えない\n・固有名詞・引用はそのまま",
+            PromptEn = "Convert text to polite Japanese (desu/masu style) using find_and_replace.",
+            Icon = "🎩", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_style_dearu",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "である調に統一", LabelEn = "Convert to Formal Style",
+            PromptJa = "開いているドキュメントのテキストを「である調」に統一してください。\n\n【ルール】\n・「です」「ます」→「である」「だ」に変換\n・find_and_replace を使って直接変更\n・文意を変えない\n・固有名詞・引用はそのまま",
+            PromptEn = "Convert text to formal Japanese (dearu style) using find_and_replace.",
+            Icon = "📜", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_to_bullet_points",
+            CategoryJa = "文章処理", CategoryEn = "Text Processing",
+            LabelJa = "箇条書きに整理", LabelEn = "Convert to Bullet Points",
+            PromptJa = "開いているドキュメントの内容を箇条書きに整理してください。\n\n【ルール】\n・長い文章を簡潔な箇条書きに変換\n・重要なポイントを漏れなく抽出\n・階層構造がある場合はインデントで表現\n\n結果は create_text_file で「箇条書き整理」として新しいタブに出力してください。",
+            PromptEn = "Convert document content to organized bullet points. Output using create_text_file.",
+            Icon = "📋", RequiresContextData = true,
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ 議事録・ビジネス文書
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_meeting_notes_to_minutes",
+            CategoryJa = "業務効率化", CategoryEn = "Productivity",
+            LabelJa = "メモから議事録作成", LabelEn = "Meeting Notes to Minutes",
+            PromptJa = "以下の会議メモから正式な議事録を作成してください。\n\n【出力フォーマット】\n■ 会議名・日時・参加者（推測可能な場合）\n■ 議題一覧\n■ 各議題の討議内容・決定事項\n■ アクションアイテム（担当・期限）\n■ 次回予定\n\n結果は create_text_file で「議事録」として新しいタブに出力してください。",
+            PromptEn = "Create formal meeting minutes from notes. Output using create_text_file.",
+            Icon = "📝", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_format_report",
+            CategoryJa = "業務効率化", CategoryEn = "Productivity",
+            LabelJa = "報告書の体裁を整える", LabelEn = "Format Report",
+            PromptJa = "開いているドキュメントを報告書として体裁を整えてください。\n\n【改善項目】\n・見出し・セクション構成の整理\n・表記ゆれの統一\n・冗長な表現の簡潔化\n・箇条書きの活用\n・結論・提言を明確化\n\nfind_and_replace で直接修正してください。",
+            PromptEn = "Format and improve the document as a professional report using find_and_replace.",
+            Icon = "📊", RequiresContextData = true,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_check_numbers",
+            CategoryJa = "業務効率化", CategoryEn = "Productivity",
+            LabelJa = "数値・金額チェック", LabelEn = "Check Numbers & Amounts",
+            PromptJa = "開いているドキュメントの数値・金額を確認してください。\n\n【チェック項目】\n・合計値の整合性\n・桁区切りの統一（カンマ区切り）\n・通貨単位の統一\n・明らかな計算ミスや桁違い\n・前後の文脈との矛盾\n\n問題がある箇所を具体的に指摘してください。",
+            PromptEn = "Check all numbers, amounts, and calculations in the document for consistency and errors.",
+            Icon = "🔢", RequiresContextData = true,
+        },
     ];
 }

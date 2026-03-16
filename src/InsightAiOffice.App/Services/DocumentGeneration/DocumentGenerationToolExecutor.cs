@@ -27,6 +27,15 @@ public class DocumentEditorCallbacks
 
     /// <summary>現在のドキュメントの全テキストを取得</summary>
     public Func<string>? GetDocumentText { get; set; }
+
+    /// <summary>Wordドキュメントにテキストを挿入（after=null で末尾追記）</summary>
+    public Func<string, string?, bool>? InsertDocumentText { get; set; }
+
+    /// <summary>Excelセルに値を書き込み（sheetName, cellRef, value）→ 成功数</summary>
+    public Func<string?, List<(string cell, string value)>, int>? EditSpreadsheetCells { get; set; }
+
+    /// <summary>テキストファイルを新規作成して新しいタブで開く（title, content）→ filePath</summary>
+    public Func<string, string, string?>? CreateTextFile { get; set; }
 }
 
 /// <summary>
@@ -55,6 +64,9 @@ public class DocumentGenerationToolExecutor : IToolExecutor
                 "add_comment" => ExecuteAddComment(input),
                 "highlight_text" => ExecuteHighlightText(input),
                 "find_and_replace" => ExecuteFindAndReplace(input),
+                "insert_document_text" => ExecuteInsertDocumentText(input),
+                "edit_spreadsheet_cells" => ExecuteEditSpreadsheetCells(input),
+                "create_text_file" => ExecuteCreateTextFile(input),
                 _ => (string?)null,
             };
 
@@ -149,6 +161,66 @@ public class DocumentGenerationToolExecutor : IToolExecutor
             replace,
             replaced_count = count,
             message = count > 0 ? $"{count} 箇所を置換しました" : $"「{Truncate(find)}」が見つかりません",
+        });
+    }
+
+    private string ExecuteInsertDocumentText(JsonElement input)
+    {
+        var text = input.GetProperty("text").GetString() ?? "";
+        var after = input.TryGetProperty("after", out var a) ? a.GetString() : null;
+
+        if (_editorCallbacks?.InsertDocumentText == null)
+            return JsonSerializer.Serialize(new { success = false, message = "Wordドキュメントが開かれていません" });
+
+        var ok = _editorCallbacks.InsertDocumentText(text, after);
+        return JsonSerializer.Serialize(new
+        {
+            success = ok,
+            message = ok
+                ? (after != null ? $"「{Truncate(after)}」の後にテキストを挿入しました" : "ドキュメント末尾にテキストを追記しました")
+                : (after != null ? $"「{Truncate(after)}」が見つかりません" : "挿入に失敗しました"),
+        });
+    }
+
+    private string ExecuteEditSpreadsheetCells(JsonElement input)
+    {
+        var sheet = input.TryGetProperty("sheet", out var s) ? s.GetString() : null;
+        var cellsJson = input.GetProperty("cells");
+        var cells = new List<(string cell, string value)>();
+        foreach (var item in cellsJson.EnumerateArray())
+        {
+            var cell = item.GetProperty("cell").GetString() ?? "";
+            var value = item.GetProperty("value").GetString() ?? "";
+            cells.Add((cell, value));
+        }
+
+        if (_editorCallbacks?.EditSpreadsheetCells == null)
+            return JsonSerializer.Serialize(new { success = false, message = "Excelスプレッドシートが開かれていません" });
+
+        var count = _editorCallbacks.EditSpreadsheetCells(sheet, cells);
+        return JsonSerializer.Serialize(new
+        {
+            success = count > 0,
+            updated_count = count,
+            total = cells.Count,
+            message = $"{count}/{cells.Count} セルを更新しました",
+        });
+    }
+
+    private string ExecuteCreateTextFile(JsonElement input)
+    {
+        var title = input.GetProperty("title").GetString() ?? "新規テキスト";
+        var content = input.GetProperty("content").GetString() ?? "";
+
+        if (_editorCallbacks?.CreateTextFile == null)
+            return JsonSerializer.Serialize(new { success = false, message = "テキストファイル作成機能が利用できません" });
+
+        var filePath = _editorCallbacks.CreateTextFile(title, content);
+        return JsonSerializer.Serialize(new
+        {
+            success = filePath != null,
+            file_path = filePath,
+            message = filePath != null ? $"新しいタブで開きました: {title}.txt" : "作成に失敗しました",
         });
     }
 

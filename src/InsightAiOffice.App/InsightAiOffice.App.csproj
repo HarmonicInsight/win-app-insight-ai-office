@@ -26,21 +26,23 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.*" />
     <PackageReference Include="System.Drawing.Common" Version="8.*" />
-    <PackageReference Include="Syncfusion.DocIO.Wpf" Version="32.*" />
-    <PackageReference Include="Syncfusion.DocToPDFConverter.Wpf" Version="32.*" />
-    <!-- DocIO.Net.Core の Portable DLL が DocIO.Base と競合するため compile を除外 -->
-    <PackageReference Include="Syncfusion.DocIO.Net.Core" Version="32.*" ExcludeAssets="compile" />
-    <PackageReference Include="Syncfusion.XlsIO.Wpf" Version="32.*" />
+    <PackageReference Include="Syncfusion.DocIO.Wpf" Version="33.*" />
+    <PackageReference Include="Syncfusion.DocToPDFConverter.Wpf" Version="33.*" />
+    <!-- DocIO.Net.Core / Pdf.Net.Core の Portable DLL が Base と競合するため compile を除外 -->
+    <PackageReference Include="Syncfusion.DocIO.Net.Core" Version="33.*" ExcludeAssets="compile" />
+    <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="33.*" ExcludeAssets="compile" />
+    <PackageReference Include="Syncfusion.XlsIO.Wpf" Version="33.*" />
     <PackageReference Include="ClosedXML" Version="0.*" />
-    <PackageReference Include="Syncfusion.SfRichTextBoxAdv.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.SfSpreadsheet.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.Presentation.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.PresentationToPdfConverter.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="32.*" />
+    <PackageReference Include="Syncfusion.SfRichTextBoxAdv.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.SfSpreadsheet.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.Presentation.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.PresentationToPdfConverter.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.PdfViewer.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.Pdf.WPF" Version="33.*" />
 
-    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.Themes.Office2019White.WPF" Version="32.*" />
-    <PackageReference Include="Syncfusion.Tools.WPF" Version="32.*" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.Themes.Office2019White.WPF" Version="33.*" />
+    <PackageReference Include="Syncfusion.Tools.WPF" Version="33.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.*" />
   </ItemGroup>
   <ItemGroup>

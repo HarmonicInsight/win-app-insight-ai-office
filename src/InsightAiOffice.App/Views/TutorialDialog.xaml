@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="チュートリアル — Insight AI Office"
-        Width="920" Height="460" WindowStartupLocation="CenterOwner"
+        Width="920" Height="620" WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"
         Background="{StaticResource BgPrimaryBrush}"
         FontFamily="Yu Gothic UI, Meiryo, Segoe UI">
@@ -24,8 +24,10 @@
                        FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
         </StackPanel>
 
-        <!-- Cards (3列 × 2行) -->
-        <WrapPanel x:Name="CardPanel" Grid.Row="1" Orientation="Horizontal"/>
+        <!-- Cards -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <WrapPanel x:Name="CardPanel" Orientation="Horizontal"/>
+        </ScrollViewer>
 
         <!-- Footer -->
         <Button Grid.Row="2" Content="閉じる" Click="Close_Click"

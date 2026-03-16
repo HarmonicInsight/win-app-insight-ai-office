@@ -104,6 +104,23 @@ public partial class MainWindow
 
     // ── Tutorial ──────────────────────────────────────────────────
 
+    private void WelcomeOpen_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DataContext is ViewModels.MainViewModel vm && vm.OpenDocumentCommand.CanExecute(null))
+            vm.OpenDocumentCommand.Execute(null);
+    }
+
+    private void WelcomeChat_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (!_isRightPanelOpen) ToggleRightPanel();
+    }
+
+    private void WelcomeRecentFile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement el && el.Tag is string path && System.IO.File.Exists(path))
+            OpenFileByPath(path);
+    }
+
     private void WelcomeTutorial_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         => Tutorial_Click(sender, new RoutedEventArgs());
 
@@ -122,13 +139,11 @@ public partial class MainWindow
                 ChatPanel.AttachedFiles.Add(new Views.AttachedFileInfo(file));
             _chatAttachedFiles = files.Select(f => new Views.AttachedFileInfo(f)).ToList();
 
-            // プロンプトをセットして即AI実行
+            // プロンプトを入力欄にセット（実行はユーザーに委ねる）
             if (!string.IsNullOrEmpty(prompt))
-            {
                 _chatVm.AiInput = prompt;
-                if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
-                    _chatVm.ExecuteFromInputCommand.Execute(null);
-            }
+
+            StatusText.Text = "チュートリアルをセットしました — 送信ボタンで実行してください";
         };
         dialog.ShowDialog();
     }
@@ -154,6 +169,10 @@ public partial class MainWindow
 
         PdfRecentFilesList.ItemsSource = entries;
         PdfRecentEmptyHint.Visibility = vis;
+
+        // ウェルカム画面
+        WelcomeRecentList.ItemsSource = entries;
+        WelcomeRecentEmpty.Visibility = vis;
     }
 
     private void RecentFile_Click(object sender, RoutedEventArgs e)
@@ -221,7 +240,7 @@ public partial class MainWindow
 
         // ライセンス変更後にAI機能の有効/無効を更新
         UpdatePlanBadge();
-        ChatPanel.IsEnabled = _licenseManager.IsActivated;
+        ChatPanel.SetAiEnabled(_licenseManager.IsActivated);
     }
 
     private void UpdatePlanBadge()

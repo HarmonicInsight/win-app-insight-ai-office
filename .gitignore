@@ -26,3 +26,6 @@ packages/
 .env
 *.pfx
 *.snk
+
+Output/
+publish/

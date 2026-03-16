@@ -84,6 +84,15 @@ public partial class TutorialDialog : Window
             },
             new TutorialCard
             {
+                Icon = "👤",
+                Title = "職務経歴書 → 採用評価",
+                Desc = "候補者の職務経歴書をAIが分析\n100点満点で評価・採用判定を出力",
+                Tag = "人事・採用",
+                Color = "#7C3AED",
+                FolderName = "12_採用候補者評価",
+            },
+            new TutorialCard
+            {
                 Icon = "🔍",
                 Title = "PPTX 比較（差分検出）",
                 Desc = "2つのプレゼン資料を📎添付して\n変更箇所を自動検出・レポート出力",

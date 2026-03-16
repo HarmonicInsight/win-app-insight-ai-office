@@ -114,15 +114,26 @@
                                BackStageColor="{StaticResource PrimaryBrush}">
                 <syncfusion:Ribbon.Items>
                     <syncfusion:RibbonTab Caption="ホーム" IsChecked="True">
-                        <syncfusion:RibbonBar Header="ファイル">
-                            <syncfusion:RibbonButton Label="開く" SizeForm="Large" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く (Ctrl+O)">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                        <syncfusion:RibbonBar Header="プロジェクト">
+                            <syncfusion:RibbonButton Label="新規" SizeForm="Small" Click="ProjectNew_Click" ToolTip="新規プロジェクト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="新規テキスト" SizeForm="Large" Click="NewText_Click" ToolTip="空のテキストファイルを新規作成">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Click="ProjectOpen_Click" ToolTip="プロジェクトを開く (.iaof)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="プロジェクト保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存 (Ctrl+S)">
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ProjectSaveAs_Click" ToolTip="プロジェクト別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                        </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="ファイル">
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く (Ctrl+O)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="新規テキスト" SizeForm="Small" Click="NewText_Click" ToolTip="新しいテキストファイルを作成">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ヘルプ">
@@ -229,22 +240,29 @@
                                BackStageColor="{StaticResource PrimaryBrush}">
                 <syncfusion:Ribbon.Items>
                     <syncfusion:RibbonTab Caption="ホーム" IsChecked="True">
-                        <syncfusion:RibbonBar Header="Word">
-                            <syncfusion:RibbonButton Label="保存" SizeForm="Small" Command="{Binding SaveDocumentCommand}" ToolTip="Word上書き保存 (Ctrl+S)">
+                        <syncfusion:RibbonBar Header="プロジェクト">
+                            <syncfusion:RibbonButton Label="新規" SizeForm="Small" Click="ProjectNew_Click" ToolTip="新規プロジェクト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Click="ProjectOpen_Click" ToolTip="プロジェクトを開く (.iaof)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ExportWord_Click" ToolTip="Wordを別名で保存">
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ProjectSaveAs_Click" ToolTip="プロジェクト別名保存">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                        </syncfusion:RibbonBar>
-                        <syncfusion:RibbonBar Header="プロジェクト">
-                            <syncfusion:RibbonButton Label="プロジェクト保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="AI履歴を含むプロジェクト(.iaof)を保存">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ファイル">
                             <syncfusion:RibbonButton Label="開く" SizeForm="Small" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く (Ctrl+O)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Command="{Binding SaveDocumentCommand}" ToolTip="ファイル上書き保存 (Ctrl+S)">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ExportWord_Click" ToolTip="ファイル別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="新規テキスト" SizeForm="Small" Click="NewText_Click" ToolTip="新しいテキストファイルを作成">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -393,19 +411,26 @@
                                BackStageColor="{StaticResource PrimaryBrush}">
                 <syncfusion:Ribbon.Items>
                     <syncfusion:RibbonTab Caption="ホーム" IsChecked="True">
-                        <syncfusion:RibbonBar Header="Excel">
-                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ExportExcel_Click" ToolTip="Excelを別名で保存">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                        </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="プロジェクト">
-                            <syncfusion:RibbonButton Label="プロジェクト保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="AI履歴を含むプロジェクト(.iaof)を保存">
+                            <syncfusion:RibbonButton Label="新規" SizeForm="Small" Click="ProjectNew_Click" ToolTip="新規プロジェクト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Click="ProjectOpen_Click" ToolTip="プロジェクトを開く (.iaof)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ProjectSaveAs_Click" ToolTip="プロジェクト別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ファイル">
                             <syncfusion:RibbonButton Label="開く" SizeForm="Small" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ExportExcel_Click" ToolTip="ファイル別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="新規テキスト" SizeForm="Small" Click="NewText_Click" ToolTip="新しいテキストファイルを作成">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
@@ -586,8 +611,17 @@
                 <syncfusion:Ribbon.Items>
                     <syncfusion:RibbonTab Caption="ホーム" IsChecked="True">
                         <syncfusion:RibbonBar Header="プロジェクト">
-                            <syncfusion:RibbonButton Label="プロジェクト保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="AI履歴を含むプロジェクト(.iaof)を保存">
+                            <syncfusion:RibbonButton Label="新規" SizeForm="Small" Click="ProjectNew_Click" ToolTip="新規プロジェクト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Click="ProjectOpen_Click" ToolTip="プロジェクトを開く (.iaof)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ProjectSaveAs_Click" ToolTip="プロジェクト別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ファイル">
@@ -716,25 +750,32 @@
                                BackStageColor="{StaticResource PrimaryBrush}">
                 <syncfusion:Ribbon.Items>
                     <syncfusion:RibbonTab Caption="ホーム" IsChecked="True">
-                        <syncfusion:RibbonBar Header="PDF">
-                            <syncfusion:RibbonButton Label="上書き保存" SizeForm="Large" Click="PdfSave_Click" ToolTip="注釈・回転を含めてPDFを上書き保存">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="20"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="PdfSaveAs_Click" ToolTip="PDFを別名で保存">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="印刷" SizeForm="Small" Click="PdfPrint_Click" ToolTip="PDFを印刷">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
-                        </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="プロジェクト">
-                            <syncfusion:RibbonButton Label="プロジェクト保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="AI履歴を含むプロジェクト(.iaof)を保存">
+                            <syncfusion:RibbonButton Label="新規" SizeForm="Small" Click="ProjectNew_Click" ToolTip="新規プロジェクト">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="開く" SizeForm="Small" Click="ProjectOpen_Click" ToolTip="プロジェクトを開く (.iaof)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="ProjectSave_Click" ToolTip="プロジェクト上書き保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="ProjectSaveAs_Click" ToolTip="プロジェクト別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="ファイル">
                             <syncfusion:RibbonButton Label="開く" SizeForm="Small" Command="{Binding OpenDocumentCommand}" ToolTip="ファイルを開く (Ctrl+O)">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="上書保存" SizeForm="Small" Click="PdfSave_Click" ToolTip="PDF上書き保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="別名保存" SizeForm="Small" Click="PdfSaveAs_Click" ToolTip="PDF別名保存">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="印刷" SizeForm="Small" Click="PdfPrint_Click" ToolTip="PDFを印刷">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE749;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                             <syncfusion:RibbonButton Label="新規テキスト" SizeForm="Small" Click="NewText_Click" ToolTip="新しいテキストファイルを作成">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>

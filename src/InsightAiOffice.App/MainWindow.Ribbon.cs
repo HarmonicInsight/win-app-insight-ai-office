@@ -1334,6 +1334,18 @@ public partial class MainWindow
         StatusText.Text = "新規プロジェクトを作成しました — ファイル > プロジェクト上書き保存 で .iaof に保存";
     }
 
+    private void ProjectOpen_Click(object sender, RoutedEventArgs e)
+    {
+        HideAllBackstages();
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "IAOF Project|*.iaof",
+            Title = "プロジェクトを開く",
+        };
+        if (dialog.ShowDialog() == true)
+            OpenFileByPath(dialog.FileName);
+    }
+
     private async void ProjectSave_Click(object sender, RoutedEventArgs e)
     {
         HideAllBackstages();

@@ -63,6 +63,7 @@ public partial class MainWindow
         RightPanelCol.Width = new GridLength(0);
         RightPanelCol.MinWidth = 0;
         _isRightPanelOpen = false;
+        UpdateChatToggleColor();
     }
 
     private void ToggleRightPanel()
@@ -79,6 +80,16 @@ public partial class MainWindow
             RightPanelCol.MinWidth = 200;
             _isRightPanelOpen = true;
         }
+        UpdateChatToggleColor();
+    }
+
+    private void UpdateChatToggleColor()
+    {
+        var brush = _isRightPanelOpen
+            ? (System.Windows.Media.Brush)FindResource("PrimaryBrush")
+            : (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
+        ChatToggleIcon.Foreground = brush;
+        ChatToggleText.Foreground = brush;
     }
 
     private void ChatPromptEditor_Click(object sender, RoutedEventArgs e)

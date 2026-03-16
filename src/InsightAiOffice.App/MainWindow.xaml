@@ -85,7 +85,7 @@
                         <Button x:Name="ChatToggleBtn" Click="ToggleChatPane_Click"
                                 Style="{StaticResource TitleBarButtonStyle}" Height="32" Width="Auto" Padding="8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center"
+                                <TextBlock x:Name="ChatToggleIcon" Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center"
                                            Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 <TextBlock x:Name="ChatToggleText" Text="AI コンシェルジュ" FontSize="12" VerticalAlignment="Center"
                                            Foreground="{StaticResource TextSecondaryBrush}"/>

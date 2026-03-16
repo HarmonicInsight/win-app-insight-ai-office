@@ -23,7 +23,14 @@
       "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null; sleep 1; dotnet build src/InsightAiOffice.App/InsightAiOffice.App.csproj 2>&1 | tail -15)",
       "Read(//c/dev/win-app-insight-ai-office/$APPDATA/HarmonicInsight/IAOF/**)",
       "Bash(taskkill //F //IM InsightAiOffice.exe 2>/dev/null)",
-      "Bash(find \"C:\\\\dev\\\\win-app-insight-ai-office\" -name \"*.xaml\" -type f 2>/dev/null | head -20)"
+      "Bash(find \"C:\\\\dev\\\\win-app-insight-ai-office\" -name \"*.xaml\" -type f 2>/dev/null | head -20)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Read(//c/dev/win-app-insight-ai-office/$USERPROFILE/.nuget/packages/**)",
+      "Read(//c/Users/erich/.nuget/packages/syncfusion.xlsio.wpf/**)",
+      "Bash(cd:*)"
     ]
   }
 }

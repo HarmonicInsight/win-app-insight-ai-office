@@ -944,52 +944,67 @@
                                        FontSize="14" Foreground="{StaticResource TextTertiaryBrush}"
                                        HorizontalAlignment="Center" Margin="0,0,0,28"/>
 
-                            <!-- 3 Action Cards -->
-                            <UniformGrid Columns="3" Margin="0,0,0,20">
-                                <!-- Card 1: ファイルを開く -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
-                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,4,0"
-                                        Cursor="Hand" MouseLeftButtonUp="WelcomeOpen_Click">
+                            <!-- 4 Action Cards -->
+                            <UniformGrid Columns="4" Margin="0,0,0,20">
+                                <!-- Card 1: プロジェクトを開く -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="14,12"
+                                        BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5" Margin="0,0,4,0"
+                                        Cursor="Hand" MouseLeftButtonUp="WelcomeOpenProject_Click">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="24"
-                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                                        <TextBlock x:Name="WelcomeOpenLabel" Text="ファイルを開いて編集"
-                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                                        <TextBlock x:Name="WelcomeOpenDesc"
-                                                   Text=".docx / .xlsx / .txt を編集&#x0a;.pptx / .pdf を参照・分析"
-                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                                        <TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock Text="プロジェクトを開く"
+                                                   FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text=".iaof を開いて&#x0a;AI履歴ごと復元"
+                                                   FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
-                                <!-- Card 2: AIコンシェルジュ -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
+                                <!-- Card 2: ファイルを開く -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="14,12"
+                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="4,0,4,0"
+                                        Cursor="Hand" MouseLeftButtonUp="WelcomeOpen_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="WelcomeOpenLabel" Text="ファイルを開く"
+                                                   FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock x:Name="WelcomeOpenDesc"
+                                                   Text=".docx / .xlsx / .txt&#x0a;.pptx / .pdf"
+                                                   FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Card 3: AIコンシェルジュ -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="14,12"
                                         BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="4,0,4,0"
                                         Cursor="Hand" MouseLeftButtonUp="WelcomeChat_Click">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="24"
-                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                         <TextBlock x:Name="WelcomeChatLabel" Text="AI コンシェルジュ"
-                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                                   FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"/>
                                         <TextBlock x:Name="WelcomeChatDesc"
-                                                   Text="要約・分析・翻訳から&#x0a;レポート・グラフを自動生成"
-                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   Text="翻訳・分析・要約&#x0a;レポート自動生成"
+                                                   FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
-                                <!-- Card 3: チュートリアル -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="16,14"
-                                        BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5" Margin="4,0,0,0"
+                                <!-- Card 4: チュートリアル -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="14,12"
+                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="4,0,0,0"
                                         Cursor="Hand" MouseLeftButtonUp="WelcomeTutorial_Click">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="24"
-                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                        <TextBlock Text="&#xE82D;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                         <TextBlock Text="チュートリアル"
-                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+                                                   FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"/>
                                         <TextBlock Text="サンプルデータで&#x0a;ワンクリック体験"
-                                                   FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                                                   FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>

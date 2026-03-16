@@ -104,6 +104,17 @@ public partial class MainWindow
 
     // ── Tutorial ──────────────────────────────────────────────────
 
+    private void WelcomeOpenProject_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "IAOF Project|*.iaof",
+            Title = "プロジェクトを開く",
+        };
+        if (dialog.ShowDialog() == true)
+            OpenFileByPath(dialog.FileName);
+    }
+
     private void WelcomeOpen_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (DataContext is ViewModels.MainViewModel vm && vm.OpenDocumentCommand.CanExecute(null))

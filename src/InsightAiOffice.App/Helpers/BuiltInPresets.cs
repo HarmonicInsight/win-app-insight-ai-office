@@ -5100,5 +5100,27 @@ batch_generate ツールを使って一括生成してください。
             PromptEn = "Check all numbers, amounts, and calculations in the document for consistency and errors.",
             Icon = "🔢", RequiresContextData = true,
         },
+
+        // ═══════════════════════════════════════════════════════════════
+        // ■ ファイル比較（File Comparison）
+        // ═══════════════════════════════════════════════════════════════
+        new PresetPrompt
+        {
+            Id = "preset_file_diff",
+            CategoryJa = "分析・要約", CategoryEn = "Analysis",
+            LabelJa = "📎 ファイル比較（差分検出）", LabelEn = "📎 Compare Files (Diff)",
+            PromptJa = "添付された2つのファイルを比較して、差分を検出してください。\n\n【使い方】\n📎ボタンで比較したい2つのファイルを添付してから実行してください。\n（Word同士、Excel同士、PPTX同士、テキスト同士など）\n\n【出力フォーマット】\n■ 変更の概要（追加・削除・修正の件数）\n■ 変更箇所一覧（具体的な差分を表形式で）\n  | # | 箇所 | ファイル1 | ファイル2 | 変更種別 |\n■ 重要な変更のハイライト\n■ 所見・注意点\n\n結果は create_text_file で「差分レポート」として新しいタブに出力してください。",
+            PromptEn = "Compare the two attached files and detect differences.\n\nHow to use: Attach two files using the 📎 button before running.\n\nOutput a diff report using create_text_file.",
+            Icon = "🔍", RequiresContextData = false,
+        },
+        new PresetPrompt
+        {
+            Id = "preset_file_merge",
+            CategoryJa = "分析・要約", CategoryEn = "Analysis",
+            LabelJa = "📎 ファイル統合（いいとこ取り）", LabelEn = "📎 Merge Best of Both Files",
+            PromptJa = "添付された2つのファイルを分析し、両方の良い部分を統合した最適版を作成してください。\n\n【使い方】\n📎ボタンで2つのファイルを添付してから実行してください。\n\n【ルール】\n・両ファイルの内容を比較分析\n・より正確・詳細・最新の情報を優先\n・矛盾がある場合は両方を併記して注記\n・統合結果の根拠を簡潔に説明\n\n結果は create_text_file で「統合版」として新しいタブに出力してください。",
+            PromptEn = "Analyze two attached files and create an optimal merged version. Output using create_text_file.",
+            Icon = "🔗", RequiresContextData = false,
+        },
     ];
 }

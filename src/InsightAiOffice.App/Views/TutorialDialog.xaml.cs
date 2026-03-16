@@ -82,6 +82,33 @@ public partial class TutorialDialog : Window
                 Color = "#CA8A04",
                 FolderName = "08_人事_採用選考表",
             },
+            new TutorialCard
+            {
+                Icon = "🔍",
+                Title = "PPTX 比較（差分検出）",
+                Desc = "2つのプレゼン資料を📎添付して\n変更箇所を自動検出・レポート出力",
+                Tag = "レビュー用",
+                Color = "#7C3AED",
+                FolderName = "09_PPTX比較",
+            },
+            new TutorialCard
+            {
+                Icon = "📝",
+                Title = "Word 比較（差分検出）",
+                Desc = "2つのWord文書を📎添付して\n追加・削除・修正箇所を一覧化",
+                Tag = "レビュー用",
+                Color = "#2563EB",
+                FolderName = "10_Word比較",
+            },
+            new TutorialCard
+            {
+                Icon = "📊",
+                Title = "Excel 比較（差分検出）",
+                Desc = "2つのExcelを📎添付して\nセル単位の変更を検出・レポート",
+                Tag = "レビュー用",
+                Color = "#16A34A",
+                FolderName = "11_Excel比較",
+            },
         };
 
         foreach (var card in cards)

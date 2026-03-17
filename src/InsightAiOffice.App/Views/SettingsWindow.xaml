@@ -1,6 +1,7 @@
 <Window x:Class="InsightAiOffice.App.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/Resources/InsightAiOffice.ico"
         Title="設定 / Settings" Width="420" Height="380"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         Background="{DynamicResource BgPrimaryBrush}">

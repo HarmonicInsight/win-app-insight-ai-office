@@ -1,6 +1,7 @@
 <Window x:Class="InsightAiOffice.App.Views.TutorialDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/Resources/InsightAiOffice.ico"
         Title="チュートリアル — Insight AI Office"
         Width="920" Height="700" WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize" ShowInTaskbar="False"

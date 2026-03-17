@@ -15,12 +15,12 @@
     <FileVersion>1.0.3.0</FileVersion>
     <Company>HARMONIC insight</Company>
     <Copyright>Copyright © 2025-2026 HARMONIC insight</Copyright>
-    <!-- <ApplicationIcon>Resources\InsightAiOffice.ico</ApplicationIcon> -->
+    <ApplicationIcon>Resources\InsightAiOffice.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
-    <Resource Include="Resources\InsightAiOffice.ico" Condition="Exists('Resources\InsightAiOffice.ico')" />
+    <Resource Include="Resources\InsightAiOffice.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />

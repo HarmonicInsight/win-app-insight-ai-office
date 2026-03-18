@@ -9,6 +9,7 @@
 #define MyAppExeName "InsightAiOffice.exe"
 #define MyAppURL "https://github.com/HarmonicInsight/win-app-insight-ai-office"
 #define PublishDir "..\publish"
+#define MyAppIcon "..\src\InsightAiOffice.App\Resources\InsightAiOffice.ico"
 
 [Setup]
 AppId={{D0E1F2A3-4B5C-6D7E-8F9A-B0C1D2E3F4A5}
@@ -29,6 +30,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 SetupLogging=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
+SetupIconFile={#MyAppIcon}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
@@ -42,9 +44,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
 Root: HKLM; Subkey: "SOFTWARE\HarmonicInsight\Insight AI Office"; ValueName: "InstallPath"; ValueType: string; ValueData: "{app}"; Flags: uninsdeletekey

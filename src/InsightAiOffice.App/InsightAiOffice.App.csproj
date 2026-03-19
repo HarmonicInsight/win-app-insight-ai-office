@@ -43,6 +43,8 @@
     <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="33.*" />
     <PackageReference Include="Syncfusion.Themes.Office2019White.WPF" Version="33.*" />
     <PackageReference Include="Syncfusion.Tools.WPF" Version="33.*" />
+    <PackageReference Include="Markdig" Version="0.*" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.*" />
   </ItemGroup>
   <ItemGroup>

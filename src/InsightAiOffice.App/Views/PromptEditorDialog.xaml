@@ -29,9 +29,40 @@
                 <Border Grid.Row="0" Background="{StaticResource PrimaryLightBrush}" Padding="8,6"
                         CornerRadius="4,4,0,0"
                         BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
-                    <TextBlock x:Name="PromptListLabel" Text="プロンプト一覧"
-                               FontWeight="SemiBold" FontSize="12"
-                               Foreground="{StaticResource PrimaryBrush}"/>
+                    <StackPanel>
+                        <TextBlock x:Name="PromptListLabel" Text="プロンプト一覧"
+                                   FontWeight="SemiBold" FontSize="12"
+                                   Foreground="{StaticResource PrimaryBrush}"/>
+                        <!-- 検索ボックス -->
+                        <Grid Margin="0,5,0,0">
+                            <TextBox x:Name="SearchBox"
+                                     FontSize="11" Padding="22,4,6,4"
+                                     BorderBrush="{StaticResource BorderBrush}"
+                                     Background="White"
+                                     TextChanged="SearchBox_TextChanged"
+                                     ToolTip="プリセットを検索"/>
+                            <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="11" IsHitTestVisible="False"
+                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            <TextBlock x:Name="SearchPlaceholder"
+                                       Text="検索..." FontSize="11" IsHitTestVisible="False"
+                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       VerticalAlignment="Center" Margin="22,0,0,0"
+                                       Visibility="Visible"/>
+                        </Grid>
+                        <!-- ビュー切替（機能別 / 業務別） -->
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <RadioButton x:Name="ViewByFunction" Content="機能別"
+                                         FontSize="10" IsChecked="True"
+                                         Checked="ViewMode_Changed" Margin="0,0,8,0"
+                                         Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <RadioButton x:Name="ViewByScene" Content="業務別"
+                                         FontSize="10"
+                                         Checked="ViewMode_Changed"
+                                         Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
 
                 <!-- ツリー -->
@@ -46,17 +77,31 @@
                     </TreeView.Resources>
                 </TreeView>
 
-                <!-- 追加・削除ボタン -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="4">
-                    <Button x:Name="AddButton" Content="+" Click="Add_Click" Padding="8,2" Margin="0,0,4,0"
-                            FontSize="14" FontWeight="Bold" Cursor="Hand"
+                <!-- アクションボタン -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="6,4">
+                    <Button x:Name="AddButton" Click="Add_Click"
+                            Padding="10,4" Margin="0,0,4,0" Cursor="Hand"
+                            FontSize="12" FontWeight="Bold"
                             Background="{StaticResource PrimaryBrush}" Foreground="White"
-                            BorderThickness="0" ToolTip="プロンプト追加"/>
-                    <Button x:Name="DeleteButton" Content="&#xE74D;" FontFamily="Segoe MDL2 Assets"
-                            Click="Delete_Click" Padding="8,2" FontSize="12" Cursor="Hand"
-                            Background="Transparent" BorderBrush="{StaticResource ErrorBrush}"
-                            Foreground="{StaticResource ErrorBrush}"
-                            BorderThickness="1" IsEnabled="False" ToolTip="削除"/>
+                            BorderThickness="0" ToolTip="マイプロンプトに新規追加">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="+" FontSize="13" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="追加" FontSize="11"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- 組織に追加ボタンは右側エディタパネルに移動 -->
+                    <Button x:Name="DeleteButton" Click="Delete_Click"
+                            Padding="10,4" Cursor="Hand"
+                            FontSize="11"
+                            Background="Transparent"
+                            BorderBrush="{StaticResource ErrorBrush}" Foreground="{StaticResource ErrorBrush}"
+                            BorderThickness="1" IsEnabled="False"
+                            ToolTip="選択中のプロンプトを削除">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE107;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,3,0"/>
+                            <TextBlock Text="削除" FontSize="10"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -129,10 +174,10 @@
                                 Background="Transparent"
                                 BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1" FontSize="11"
-                                Margin="0,0,4,0" ToolTip="プロンプトをエクスポート">
+                                Margin="0,0,4,0" ToolTip="組織プリセットをファイルに書き出し（他の端末に配布）">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE898;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,4,0"/>
-                                <TextBlock Text="Export" FontSize="11"/>
+                                <TextBlock Text="組織配布" FontSize="11"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="ImportButton"
@@ -140,14 +185,25 @@
                                 Background="Transparent"
                                 BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1" FontSize="11"
-                                ToolTip="プロンプトをインポート">
+                                ToolTip="配布された組織プリセットを取り込み">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,0,4,0"/>
-                                <TextBlock Text="Import" FontSize="11"/>
+                                <TextBlock Text="取り込み" FontSize="11"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="AddToOrgButton" Click="AddToOrg_Click"
+                                Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
+                                FontSize="11" IsEnabled="False"
+                                Background="#7C3AED" Foreground="White"
+                                BorderThickness="0"
+                                ToolTip="このプリセットを自組織プリセットに追加（チーム共有用）">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🏢" FontSize="11" Margin="0,0,3,0"/>
+                                <TextBlock Text="組織に追加" FontSize="11"/>
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="CustomizeButton"
                                 Click="Customize_Click" Padding="16,6" Cursor="Hand"
                                 Background="#7C3AED" Foreground="White"

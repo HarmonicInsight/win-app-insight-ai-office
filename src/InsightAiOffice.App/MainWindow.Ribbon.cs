@@ -209,6 +209,9 @@ public partial class MainWindow
     private void ExcelWrapText_Click(object sender, RoutedEventArgs e) =>
         WithExcelRange(r => r.CellStyle.WrapText = !r.CellStyle.WrapText);
 
+    private void ExcelUnwrapText_Click(object sender, RoutedEventArgs e) =>
+        WithExcelRange(r => { r.CellStyle.WrapText = false; StatusText.Text = "折り返しを解除しました"; });
+
     // ── 罫線パターン ──
 
     private void ExcelBorders_Click(object sender, RoutedEventArgs e) => ExcelBorderGrid_Click(sender, e);
@@ -281,6 +284,45 @@ public partial class MainWindow
             ws.Range[row, col].FreezePanes();
             grid.InvalidateCells();
             StatusText.Text = LanguageManager.Get("Hint_FrozenPanes");
+        }
+        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
+    }
+
+    private void ExcelUnfreezePanes_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var grid = Spreadsheet?.ActiveGrid;
+            var ws = Spreadsheet?.ActiveSheet;
+            if (grid == null || ws == null) return;
+
+            ws.RemovePanes();
+            grid.InvalidateCells();
+            StatusText.Text = "ウィンドウ枠の固定を解除しました";
+        }
+        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
+    }
+
+    private void ExcelProtectSheet_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var ws = Spreadsheet?.ActiveSheet;
+            if (ws == null) return;
+            ws.Protect(string.Empty);
+            StatusText.Text = "シートを保護しました";
+        }
+        catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
+    }
+
+    private void ExcelUnprotectSheet_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var ws = Spreadsheet?.ActiveSheet;
+            if (ws == null) return;
+            ws.Unprotect(string.Empty);
+            StatusText.Text = "シートの保護を解除しました";
         }
         catch (Exception ex) { StatusText.Text = $"{LanguageManager.Get("Error_Title")}: {ex.Message}"; }
     }
@@ -793,36 +835,78 @@ public partial class MainWindow
         try
         {
             var doc = PdfViewer.LoadedDocument;
-            if (doc == null || doc.Pages.Count < 2)
+            if (doc == null || doc.Pages.Count < 1)
             {
-                StatusText.Text = LanguageManager.Get("Pdf_SplitNeedMultiplePages");
+                StatusText.Text = "PDFが読み込まれていません";
                 return;
             }
 
-            // Use SaveFileDialog to pick output folder (user picks first file name)
+            var totalPages = doc.Pages.Count;
+
+            // ページ範囲を入力
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                $"抽出するページを指定してください（全{totalPages}ページ）\n\n例:\n  1-3    → 1〜3ページ\n  1,3,5  → 1・3・5ページ\n  2-     → 2ページ以降すべて",
+                "ページ抽出",
+                "1-" + totalPages);
+
+            if (string.IsNullOrWhiteSpace(input)) return;
+
+            // ページ番号をパース
+            var pages = ParsePageRange(input, totalPages);
+            if (pages.Count == 0)
+            {
+                StatusText.Text = "有効なページ番号がありません";
+                return;
+            }
+
+            // 保存先を選択
             var saveDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "PDF|*.pdf",
-                Title = LanguageManager.Get("Pdf_SelectSplitFolder"),
-                FileName = Path.GetFileNameWithoutExtension(_currentDocPath) + "_p1.pdf"
+                Title = "抽出したページの保存先",
+                FileName = Path.GetFileNameWithoutExtension(_currentDocPath) + $"_p{pages[0]}-{pages[^1]}.pdf"
             };
             if (saveDialog.ShowDialog() != true) return;
 
-            var outputDir = Path.GetDirectoryName(saveDialog.FileName)!;
-            var baseName = Path.GetFileNameWithoutExtension(_currentDocPath);
-            for (int i = 0; i < doc.Pages.Count; i++)
-            {
-                var newDoc = new Syncfusion.Pdf.PdfDocument();
-                newDoc.ImportPage(doc, i);
-                var outPath = Path.Combine(outputDir, $"{baseName}_p{i + 1}.pdf");
-                using var fs = File.Create(outPath);
-                newDoc.Save(fs);
-                newDoc.Close(true);
-            }
+            // 選択ページを抽出
+            var newDoc = new Syncfusion.Pdf.PdfDocument();
+            foreach (var pageNum in pages)
+                newDoc.ImportPage(doc, pageNum - 1); // 0-indexed
 
-            StatusText.Text = LanguageManager.Format("Pdf_Split", doc.Pages.Count, outputDir);
+            using var fs = File.Create(saveDialog.FileName);
+            newDoc.Save(fs);
+            newDoc.Close(true);
+
+            StatusText.Text = $"{pages.Count}ページを抽出して保存しました — {Path.GetFileName(saveDialog.FileName)}";
         }
-        catch (Exception ex) { StatusText.Text = $"PDF Split: {ex.Message}"; }
+        catch (Exception ex) { StatusText.Text = $"ページ抽出: {ex.Message}"; }
+    }
+
+    /// <summary>ページ範囲文字列をパースする（例: "1-3,5,7-" → [1,2,3,5,7,8,9,10]）</summary>
+    private static List<int> ParsePageRange(string input, int totalPages)
+    {
+        var pages = new SortedSet<int>();
+        var parts = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var part in parts)
+        {
+            if (part.Contains('-'))
+            {
+                var range = part.Split('-', 2);
+                var start = string.IsNullOrEmpty(range[0]) ? 1 : int.TryParse(range[0], out var s) ? s : 0;
+                var end = string.IsNullOrEmpty(range[1]) ? totalPages : int.TryParse(range[1], out var e) ? e : 0;
+                if (start < 1) start = 1;
+                if (end > totalPages) end = totalPages;
+                for (int i = start; i <= end; i++)
+                    pages.Add(i);
+            }
+            else if (int.TryParse(part, out var p) && p >= 1 && p <= totalPages)
+            {
+                pages.Add(p);
+            }
+        }
+
+        return pages.ToList();
     }
 
     // ── PDF Phase 2: Insert Text / Watermark / Image ────────────
@@ -1327,11 +1411,10 @@ public partial class MainWindow
     private void ProjectNew_Click(object sender, RoutedEventArgs e)
     {
         HideAllBackstages();
-        // 新しい空のテキストを作成（プロジェクトは保存時に .iaof 化）
+        // 新規プロジェクト: 名前を付けて .iaof を保存するフローへ
         _projectService?.Dispose();
         _projectService = null;
-        NewText_Click(sender, e);
-        StatusText.Text = "新規プロジェクトを作成しました — ファイル > プロジェクト上書き保存 で .iaof に保存";
+        ProjectSaveAs_Click(sender, e);
     }
 
     private void ProjectOpen_Click(object sender, RoutedEventArgs e)

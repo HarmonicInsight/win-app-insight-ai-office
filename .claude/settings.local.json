@@ -30,7 +30,17 @@
       "Bash(taskkill:*)",
       "Read(//c/dev/win-app-insight-ai-office/$USERPROFILE/.nuget/packages/**)",
       "Read(//c/Users/erich/.nuget/packages/syncfusion.xlsio.wpf/**)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(where iscc:*)",
+      "Read(//c/Program Files \\(x86\\)/Inno Setup 6/**)",
+      "Read(//c/Program Files/Inno Setup 6/**)",
+      "Bash(dotnet publish:*)",
+      "Bash(gh release:*)",
+      "Bash(where iscc.exe)",
+      "Read(//c/Users/erich/**)",
+      "Bash(\"/c/Users/erich/AppData/Local/Programs/Inno Setup 6/ISCC.exe\" installer/InsightAiOffice.iss 2>&1 | tail -10)",
+      "Bash(\"/c/Users/erich/AppData/Local/Programs/Inno Setup 6/ISCC.exe\" installer/InsightAiOffice.iss 2>&1 | tail -5)"
     ]
   }
 }

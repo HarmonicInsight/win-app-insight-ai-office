@@ -13,6 +13,7 @@ public partial class ChatPanelView : UserControl
 {
     public event EventHandler? HelpRequested;
     public event EventHandler? CloseRequested;
+    public event EventHandler? PopOutRequested;
     public event EventHandler? PromptEditorRequested;
     public event Action<string>? InsertToDocumentRequested;
     public event Action<string>? CopyResponseRequested;
@@ -186,6 +187,73 @@ public partial class ChatPanelView : UserControl
     private void Close_Click(object sender, RoutedEventArgs e) =>
         CloseRequested?.Invoke(this, EventArgs.Empty);
 
+    private void PopOut_Click(object sender, RoutedEventArgs e) =>
+        PopOutRequested?.Invoke(this, EventArgs.Empty);
+
+    private void NewThread_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not AiChatViewModel vm) return;
+        vm.NewThread();
+    }
+
+    private void RenameThread_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not AiChatViewModel vm || vm.CurrentThread == null) return;
+        var thread = vm.CurrentThread;
+
+        var inputBox = new System.Windows.Controls.TextBox
+        {
+            Text = thread.Title, FontSize = 12, Margin = new Thickness(0, 8, 0, 0),
+            SelectionStart = 0, SelectionLength = thread.Title.Length,
+        };
+        var okBtn = new System.Windows.Controls.Button
+        {
+            Content = "OK", Width = 70, IsDefault = true,
+            Margin = new Thickness(0, 8, 0, 0),
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+        };
+        var dlg = new Window
+        {
+            Title = "スレッド名の変更",
+            Width = 320, Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Owner = Window.GetWindow(this),
+            ResizeMode = ResizeMode.NoResize,
+        };
+        okBtn.Click += (_, _) => dlg.DialogResult = true;
+        dlg.Content = new System.Windows.Controls.StackPanel
+        {
+            Margin = new Thickness(12),
+            Children =
+            {
+                new System.Windows.Controls.TextBlock { Text = "スレッド名:", FontSize = 11 },
+                inputBox,
+                okBtn,
+            }
+        };
+        inputBox.KeyDown += (_, ke) =>
+        {
+            if (ke.Key == System.Windows.Input.Key.Enter) dlg.DialogResult = true;
+        };
+        inputBox.Focus();
+        if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(inputBox.Text))
+            thread.Title = inputBox.Text.Trim();
+    }
+
+    private void DeleteThread_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not AiChatViewModel vm || vm.CurrentThread == null) return;
+        if (vm.Threads.Count <= 1) return;
+
+        var result = MessageBox.Show(
+            $"「{vm.CurrentThread.Title}」を削除しますか？",
+            "スレッドの削除",
+            MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result != MessageBoxResult.Yes) return;
+
+        vm.DeleteCurrentThread();
+    }
+
     private void PromptEditor_Click(object sender, RoutedEventArgs e) =>
         PromptEditorRequested?.Invoke(this, EventArgs.Empty);
 
@@ -251,6 +319,14 @@ public partial class ChatPanelView : UserControl
         if (AttachedFiles.Any(f => f.FullPath == filePath)) return;
         AttachedFiles.Add(new AttachedFileInfo(filePath));
         FilesAttached?.Invoke(AttachedFiles.ToList());
+    }
+
+    private void OpenAttachment_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2 && sender is FrameworkElement el && el.Tag is string path && File.Exists(path))
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        }
     }
 
     private void RemoveAttachment_Click(object sender, RoutedEventArgs e)

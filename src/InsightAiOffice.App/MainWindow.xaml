@@ -7,6 +7,7 @@
         xmlns:ui="clr-namespace:InsightCommon.UI;assembly=InsightCommon"
         xmlns:helpers="clr-namespace:InsightAiOffice.App.Helpers"
         xmlns:views="clr-namespace:InsightAiOffice.App.Views"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Insight AI Office"
         Width="1400" Height="900"
         MinWidth="800" MinHeight="600"
@@ -485,9 +486,11 @@
                             <syncfusion:RibbonButton Label="右揃え" SizeForm="Small" Click="ExcelAlignRight_Click" ToolTip="右揃え">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8E2;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="折り返し" SizeForm="Small" Click="ExcelWrapText_Click" ToolTip="折り返して全体を表示">
-                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B3;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
-                            </syncfusion:RibbonButton>
+                            <syncfusion:SplitButton Label="折り返し" SizeForm="Small" Click="ExcelWrapText_Click" ToolTip="折り返して全体を表示（トグル）">
+                                <syncfusion:SplitButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8B3;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:SplitButton.IconTemplate>
+                                <syncfusion:DropDownMenuItem Header="折り返して全体を表示" Click="ExcelWrapText_Click"/>
+                                <syncfusion:DropDownMenuItem Header="折り返し解除" Click="ExcelUnwrapText_Click"/>
+                            </syncfusion:SplitButton>
                             <syncfusion:SplitButton Label="セル結合" SizeForm="Small" Click="ExcelMergeCells_Click" ToolTip="セルを結合">
                                 <syncfusion:SplitButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8C4;" FontFamily="Segoe MDL2 Assets" FontSize="16"/></DataTemplate></syncfusion:SplitButton.IconTemplate>
                                 <syncfusion:DropDownMenuItem Header="セルを結合" Click="ExcelMergeCells_Click"/>
@@ -512,7 +515,17 @@
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
                         <syncfusion:RibbonBar Header="表示">
-                            <syncfusion:RibbonButton Label="枠の固定" SizeForm="Small" Click="ExcelFreezePanes_Click" ToolTip="ウィンドウ枠の固定">
+                            <syncfusion:SplitButton Label="枠の固定" SizeForm="Small" Click="ExcelFreezePanes_Click" ToolTip="ウィンドウ枠の固定">
+                                <syncfusion:SplitButton.IconTemplate><DataTemplate><TextBlock Text="&#xE785;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:SplitButton.IconTemplate>
+                                <syncfusion:DropDownMenuItem Header="ウィンドウ枠の固定" Click="ExcelFreezePanes_Click"/>
+                                <syncfusion:DropDownMenuItem Header="固定の解除" Click="ExcelUnfreezePanes_Click"/>
+                            </syncfusion:SplitButton>
+                        </syncfusion:RibbonBar>
+                        <syncfusion:RibbonBar Header="保護">
+                            <syncfusion:RibbonButton Label="シート保護" SizeForm="Small" Click="ExcelProtectSheet_Click" ToolTip="シートを保護して編集を制限">
+                                <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
+                            </syncfusion:RibbonButton>
+                            <syncfusion:RibbonButton Label="保護解除" SizeForm="Small" Click="ExcelUnprotectSheet_Click" ToolTip="シートの保護を解除">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE785;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
@@ -834,7 +847,7 @@
                             <syncfusion:RibbonButton Label="PDF結合" SizeForm="Small" Click="PdfMerge_Click" ToolTip="別のPDFを結合">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
-                            <syncfusion:RibbonButton Label="ページ分割" SizeForm="Small" Click="PdfSplit_Click" ToolTip="PDFをページ毎に分割">
+                            <syncfusion:RibbonButton Label="ページ抽出" SizeForm="Small" Click="PdfSplit_Click" ToolTip="指定ページだけを抜き出して別のPDFに保存">
                                 <syncfusion:RibbonButton.IconTemplate><DataTemplate><TextBlock Text="&#xF156;" FontFamily="Segoe MDL2 Assets" FontSize="14"/></DataTemplate></syncfusion:RibbonButton.IconTemplate>
                             </syncfusion:RibbonButton>
                         </syncfusion:RibbonBar>
@@ -981,8 +994,11 @@
                                        Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="AI Office" FontSize="28" FontWeight="Light"
                                        Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                            <TextBlock x:Name="WelcomeTagline" Text="AI の民主化：誰もが業務で AI を使えるように"
-                                       FontSize="14" Foreground="{StaticResource TextTertiaryBrush}"
+                            <TextBlock Text="Word / Excel / PowerPoint / PDF / Text / Markdown"
+                                       FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="WelcomeTagline" Text="1つのツールで、すべての業務をAIで。"
+                                       FontSize="14" FontWeight="Medium" Foreground="{StaticResource PrimaryBrush}"
                                        HorizontalAlignment="Center" Margin="0,0,0,28"/>
 
                             <!-- 4 Action Cards -->
@@ -1018,18 +1034,19 @@
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
-                                <!-- Card 3: AIコンシェルジュ -->
-                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="14,12"
+                                <!-- Card 3: 作成した資料を見る -->
+                                <Border Background="{StaticResource BgCardBrush}" CornerRadius="8" Padding="10,12"
                                         BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="4,0,4,0"
-                                        Cursor="Hand" MouseLeftButtonUp="WelcomeChat_Click">
+                                        Cursor="Hand" MouseLeftButtonUp="WelcomeViewArtifacts_Click">
                                     <StackPanel>
-                                        <TextBlock Text="&#xE8D4;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                                        <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="22"
                                                    Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-                                        <TextBlock x:Name="WelcomeChatLabel" Text="AI コンシェルジュ"
-                                                   FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"/>
-                                        <TextBlock x:Name="WelcomeChatDesc"
-                                                   Text="翻訳・分析・要約&#x0a;レポート自動生成"
+                                        <TextBlock x:Name="WelcomeViewArtifactsLabel" Text="作成した資料を見る"
+                                                   FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,3"
+                                                   TextTrimming="None" TextWrapping="NoWrap"/>
+                                        <TextBlock x:Name="WelcomeViewArtifactsDesc"
+                                                   Text="AIが生成した&#x0a;ファイルを確認"
                                                    FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
                                                    HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
                                     </StackPanel>
@@ -1096,16 +1113,70 @@
                         <syncfusion:SfSpreadsheet x:Name="Spreadsheet"/>
                     </Grid>
 
-                    <!-- Text Editor Panel -->
+                    <!-- Text / Markdown Editor Panel -->
                     <Grid x:Name="TextEditorPanel" Visibility="Collapsed">
-                        <TextBox x:Name="TextEditor"
-                                 AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas, Yu Gothic UI, Meiryo"
-                                 FontSize="13" Padding="12,8"
-                                 Background="White" Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderThickness="0"
-                                 AutomationProperties.Name="Text editor"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Markdown ツールバー（.md ファイル時のみ表示） -->
+                        <Border x:Name="MarkdownToolbar" Grid.Row="0" Visibility="Collapsed"
+                                Background="{StaticResource BgSecondaryBrush}"
+                                Padding="8,4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="📝" FontSize="13" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Markdown" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"
+                                               Margin="0,0,12,0"/>
+                                    <RadioButton x:Name="MdEditMode" Content="編集" GroupName="MdMode"
+                                                 IsChecked="True" Checked="MdMode_Changed"
+                                                 FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <RadioButton x:Name="MdPreviewMode" Content="プレビュー" GroupName="MdMode"
+                                                 Checked="MdMode_Changed"
+                                                 FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <RadioButton x:Name="MdSplitMode" Content="分割" GroupName="MdMode"
+                                                 Checked="MdMode_Changed"
+                                                 FontSize="11" VerticalAlignment="Center"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- エディタ / プレビュー コンテナ -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="MdEditColumn" Width="*"/>
+                                <ColumnDefinition x:Name="MdSplitterColumn" Width="0"/>
+                                <ColumnDefinition x:Name="MdPreviewColumn" Width="0"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- テキストエディタ -->
+                            <TextBox x:Name="TextEditor" Grid.Column="0"
+                                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas, Yu Gothic UI, Meiryo"
+                                     FontSize="13" Padding="12,8"
+                                     Background="White" Foreground="{StaticResource TextPrimaryBrush}"
+                                     BorderThickness="0"
+                                     AutomationProperties.Name="Text editor"/>
+
+                            <!-- 分割モード用スプリッター -->
+                            <GridSplitter x:Name="MdSplitter" Grid.Column="1"
+                                          Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                                          Background="Transparent" Cursor="SizeWE"
+                                          BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0"
+                                          Visibility="Collapsed"/>
+
+                            <!-- Markdown プレビュー（WebView2 = Chromiumエンジン） -->
+                            <Border x:Name="MdPreviewBorder" Grid.Column="2" Background="White"
+                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+                                <wv2:WebView2 x:Name="MarkdownPreview" DefaultBackgroundColor="Transparent"/>
+                            </Border>
+                        </Grid>
                     </Grid>
 
                     <!-- PPTX Slide Viewer Panel -->

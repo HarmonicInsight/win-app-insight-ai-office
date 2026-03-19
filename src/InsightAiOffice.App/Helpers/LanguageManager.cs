@@ -8,10 +8,10 @@ public static class LanguageManager
         {
             // App
             ["App_Title"] = "Insight AI Office",
-            ["App_Tagline"] = "AIの民主化：誰もが業務でAIを使えるように",
+            ["App_Tagline"] = "1つのツールで、すべての業務をAIで。",
 
             // Welcome
-            ["Welcome_Tagline"] = "AI の民主化：誰もが業務で AI を使えるように",
+            ["Welcome_Tagline"] = "1つのツールで、すべての業務をAIで。",
             ["Welcome_EditTitle"] = "オフィスを編集する",
             ["Welcome_EditDesc"] = "Word・Excel を直接編集\nPowerPoint・PDF を表示・操作",
             ["Welcome_CreateTitle"] = "新しい資料を作る",
@@ -20,6 +20,8 @@ public static class LanguageManager
             ["Welcome_OpenDesc"] = ".docx / .xlsx / .pptx / .pdf を開いて AI と一緒に作業",
             ["Welcome_ChatLabel"] = "AI コンシェルジュで資料を作成",
             ["Welcome_ChatDescNew"] = "要約・分析・翻訳 → レポート・グラフ・表を自動生成",
+            ["Welcome_ViewArtifactsLabel"] = "作成した資料を見る",
+            ["Welcome_ViewArtifactsDesc"] = "AIが生成したファイルを確認",
             ["Welcome_Start"] = "はじめに",
             ["Welcome_OpenChat"] = "AI チャットを開く",
             ["Welcome_ChatDesc"] = "ドキュメント生成・分析・質問応答",
@@ -166,8 +168,8 @@ public static class LanguageManager
             ["PE_Model"] = "モデル",
             ["PE_PromptText"] = "プロンプトテキスト",
             ["PE_Save"] = "保存",
-            ["PE_Execute"] = "✓ AI実行",
-            ["PE_ExecuteTooltip"] = "このプロンプトでAIを実行し、結果をチャットに表示",
+            ["PE_Execute"] = "✓ チャットにセット",
+            ["PE_ExecuteTooltip"] = "このプロンプトをチャット入力欄にセットします（添付ファイルを追加してから送信できます）",
             ["PE_Add"] = "新規プロンプト追加",
             ["PE_Delete"] = "削除",
             ["PE_NewPrompt"] = "新しいプロンプト",
@@ -313,7 +315,7 @@ public static class LanguageManager
             ["Pdf_Merged"] = "{0} 個のPDFを結合しました",
             ["Pdf_SplitNeedMultiplePages"] = "分割には2ページ以上が必要です",
             ["Pdf_SelectSplitFolder"] = "分割ファイルの保存先を選択",
-            ["Pdf_Split"] = "{0} ページを {1} に分割しました",
+            ["Pdf_Split"] = "PDFを {0} ページに分割して保存しました（{1}）",
             ["Pdf_EnterStampText"] = "追加するテキストを入力:",
             ["Pdf_TextAdded"] = "テキストを追加しました",
             ["Pdf_EnterWatermarkText"] = "透かしテキストを入力:",
@@ -376,10 +378,10 @@ public static class LanguageManager
         {
             // App
             ["App_Title"] = "Insight AI Office",
-            ["App_Tagline"] = "The New Office — Work with AI",
+            ["App_Tagline"] = "One tool for all your work, powered by AI.",
 
             // Welcome
-            ["Welcome_Tagline"] = "Democratizing AI: Empowering Everyone to Use AI at Work",
+            ["Welcome_Tagline"] = "One tool for all your work, powered by AI.",
             ["Welcome_EditTitle"] = "Edit Office Documents",
             ["Welcome_EditDesc"] = "Edit Word & Excel directly\nView PowerPoint & PDF",
             ["Welcome_CreateTitle"] = "Create New Materials",
@@ -388,6 +390,8 @@ public static class LanguageManager
             ["Welcome_OpenDesc"] = "Open .docx / .xlsx / .pptx / .pdf and work with AI",
             ["Welcome_ChatLabel"] = "Create with AI Concierge",
             ["Welcome_ChatDescNew"] = "Summarize, analyze, translate → auto-generate reports, charts & tables",
+            ["Welcome_ViewArtifactsLabel"] = "View Created Documents",
+            ["Welcome_ViewArtifactsDesc"] = "Browse AI-generated files",
             ["Welcome_Start"] = "Get Started",
             ["Welcome_OpenChat"] = "Open AI Chat",
             ["Welcome_ChatDesc"] = "Document generation, analysis & Q&A",
@@ -534,8 +538,8 @@ public static class LanguageManager
             ["PE_Model"] = "Model",
             ["PE_PromptText"] = "Prompt Text",
             ["PE_Save"] = "Save",
-            ["PE_Execute"] = "✓ Run AI",
-            ["PE_ExecuteTooltip"] = "Run AI with this prompt and show results in chat",
+            ["PE_Execute"] = "✓ Set to Chat",
+            ["PE_ExecuteTooltip"] = "Set this prompt to chat input (you can attach files before sending)",
             ["PE_Add"] = "Add New Prompt",
             ["PE_Delete"] = "Delete",
             ["PE_NewPrompt"] = "New Prompt",
@@ -681,7 +685,7 @@ public static class LanguageManager
             ["Pdf_Merged"] = "Merged {0} PDF file(s)",
             ["Pdf_SplitNeedMultiplePages"] = "Need at least 2 pages to split",
             ["Pdf_SelectSplitFolder"] = "Select output folder for split pages",
-            ["Pdf_Split"] = "Split {0} pages to {1}",
+            ["Pdf_Split"] = "PDF split into {0} pages, saved to {1}",
             ["Pdf_EnterStampText"] = "Enter text to add:",
             ["Pdf_TextAdded"] = "Text stamp added",
             ["Pdf_EnterWatermarkText"] = "Enter watermark text:",

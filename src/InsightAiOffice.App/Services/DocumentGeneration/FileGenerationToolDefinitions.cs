@@ -481,6 +481,8 @@ public static class FileGenerationToolDefinitions
         InsertDocumentText,
         EditSpreadsheetCells,
         CreateTextFile,
+        // DrillDown（圧縮データの詳細取得）
+        InsightCommon.AI.DocumentCompressor.GetDrillDownToolDefinition(),
     };
 
     private static JsonObject Parse(string json) => JsonNode.Parse(json)!.AsObject();

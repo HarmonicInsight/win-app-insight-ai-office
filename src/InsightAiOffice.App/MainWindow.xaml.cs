@@ -84,6 +84,7 @@ public partial class MainWindow : Window
         // View イベントハンドラ
         ChatPanel.HelpRequested += (_, _) => Views.HelpWindow.ShowSection(this, "ai-assistant");
         ChatPanel.CloseRequested += (_, _) => CloseRightPanel_Click(this, new RoutedEventArgs());
+        ChatPanel.PopOutRequested += (_, _) => PopOutChatPanel();
         ChatPanel.PromptEditorRequested += (_, _) => ChatPromptEditor_Click(this, new RoutedEventArgs());
         ChatPanel.InsertToDocumentRequested += InsertAiResponseText;
         ChatPanel.CopyResponseRequested += CopyAiResponseText;
@@ -108,8 +109,148 @@ public partial class MainWindow : Window
         TextEditor.TextChanged += (_, _) =>
         {
             if (_activeEditorType == "text")
+            {
                 _textDirty = TextEditor.Text != _textOriginal;
+                // 分割モード時はデバウンス付きリアルタイム更新
+                if (_isMarkdownFile && MdSplitMode.IsChecked == true)
+                    ScheduleMarkdownPreviewUpdate();
+            }
         };
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _mdDebounceTimer;
+
+    private void ScheduleMarkdownPreviewUpdate()
+    {
+        if (_mdDebounceTimer == null)
+        {
+            _mdDebounceTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _mdDebounceTimer.Tick += (_, _) =>
+            {
+                _mdDebounceTimer.Stop();
+                UpdateMarkdownPreview();
+            };
+        }
+        _mdDebounceTimer.Stop();
+        _mdDebounceTimer.Start();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Markdown エディタ
+    // ═══════════════════════════════════════════════════════════════
+
+    private bool _isMarkdownFile;
+    private static readonly Markdig.MarkdownPipeline s_mdPipeline =
+        Markdig.MarkdownExtensions.UseAdvancedExtensions(new Markdig.MarkdownPipelineBuilder()).Build();
+
+    /// <summary>Markdown ファイルを開いた時にツールバーを表示する</summary>
+    private void SetMarkdownMode(bool isMarkdown)
+    {
+        _isMarkdownFile = isMarkdown;
+        MarkdownToolbar.Visibility = isMarkdown ? Visibility.Visible : Visibility.Collapsed;
+
+        if (isMarkdown)
+        {
+            // デフォルトは編集モード
+            MdEditMode.IsChecked = true;
+            ApplyMarkdownLayout("edit");
+        }
+        else
+        {
+            // 通常テキスト: エディタのみ（カラム幅で制御）
+            MdEditColumn.Width = new GridLength(1, GridUnitType.Star);
+            MdSplitterColumn.Width = new GridLength(0);
+            MdPreviewColumn.Width = new GridLength(0);
+            MdSplitter.Visibility = Visibility.Collapsed;
+            TextEditor.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void MdMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_isMarkdownFile) return;
+
+        if (MdEditMode.IsChecked == true)
+            ApplyMarkdownLayout("edit");
+        else if (MdPreviewMode.IsChecked == true)
+            ApplyMarkdownLayout("preview");
+        else if (MdSplitMode.IsChecked == true)
+            ApplyMarkdownLayout("split");
+    }
+
+    private void ApplyMarkdownLayout(string mode)
+    {
+        // WebBrowser は Visibility で制御するとレンダリングされない WPF の問題があるため
+        // カラム幅のみで表示/非表示を切り替える
+        switch (mode)
+        {
+            case "edit":
+                TextEditor.Visibility = Visibility.Visible;
+                MdSplitter.Visibility = Visibility.Collapsed;
+                MdEditColumn.Width = new GridLength(1, GridUnitType.Star);
+                MdSplitterColumn.Width = new GridLength(0);
+                MdPreviewColumn.Width = new GridLength(0);
+                break;
+
+            case "preview":
+                TextEditor.Visibility = Visibility.Collapsed;
+                MdSplitter.Visibility = Visibility.Collapsed;
+                MdEditColumn.Width = new GridLength(0);
+                MdSplitterColumn.Width = new GridLength(0);
+                MdPreviewColumn.Width = new GridLength(1, GridUnitType.Star);
+                UpdateMarkdownPreview();
+                break;
+
+            case "split":
+                TextEditor.Visibility = Visibility.Visible;
+                MdSplitter.Visibility = Visibility.Visible;
+                MdEditColumn.Width = new GridLength(1, GridUnitType.Star);
+                MdSplitterColumn.Width = new GridLength(5);
+                MdPreviewColumn.Width = new GridLength(1, GridUnitType.Star);
+                UpdateMarkdownPreview();
+                break;
+        }
+    }
+
+    private async void UpdateMarkdownPreview()
+    {
+        try
+        {
+            // WebView2 の初期化を待つ
+            if (MarkdownPreview.CoreWebView2 == null)
+            {
+                await MarkdownPreview.EnsureCoreWebView2Async();
+            }
+
+            var md = TextEditor.Text ?? "";
+            var bodyHtml = Markdig.Markdown.ToHtml(md, s_mdPipeline);
+            var fullHtml = string.Concat(
+                "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><style>",
+                "body{font-family:'Yu Gothic UI','Meiryo','Segoe UI',sans-serif;font-size:14px;line-height:1.7;color:#1C1917;padding:16px 24px;margin:0;background:#FAFAF8}",
+                "h1{font-size:1.6em;border-bottom:2px solid #B8942F;padding-bottom:6px}",
+                "h2{font-size:1.3em;border-bottom:1px solid #E7E2DA;padding-bottom:4px}",
+                "h3{font-size:1.1em;color:#57534E}",
+                "code{background:#F5F0E6;padding:2px 6px;border-radius:3px;font-family:Consolas,monospace;font-size:0.9em}",
+                "pre{background:#F5F0E6;padding:12px 16px;border-radius:6px;overflow-x:auto;border:1px solid #E7E2DA}",
+                "pre code{background:none;padding:0}",
+                "blockquote{border-left:3px solid #B8942F;margin:12px 0;padding:8px 16px;background:#FAF8F5;color:#57534E}",
+                "table{border-collapse:collapse;width:100%;margin:12px 0}",
+                "th,td{border:1px solid #E7E2DA;padding:8px 12px;text-align:left}",
+                "th{background:#F5F0E6;font-weight:600}",
+                "tr:nth-child(even){background:#FAFAF8}",
+                "a{color:#B8942F}img{max-width:100%;height:auto}",
+                "ul,ol{padding-left:24px}li{margin:4px 0}",
+                "hr{border:none;border-top:1px solid #E7E2DA;margin:20px 0}",
+                "</style></head><body>",
+                bodyHtml,
+                "</body></html>");
+
+            MarkdownPreview.NavigateToString(fullHtml);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Markdown preview: {ex.Message}";
+        }
     }
 
     private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -425,10 +566,16 @@ public partial class MainWindow : Window
         if (defaultPreset != null && !string.IsNullOrEmpty(defaultPreset.SystemPrompt))
             prompt = defaultPreset.SystemPrompt;
 
-        // ドキュメントコンテキスト（エディタで開いているファイル）
+        // ドキュメントコンテキスト（エディタで開いているファイル — 構造化圧縮済み）
         var docContent = ExtractDocumentContent();
         if (!string.IsNullOrEmpty(docContent))
-            prompt += $"\n\n--- {(isJa ? "現在のドキュメント内容" : "Current Document")} ---\n{docContent}\n--- ---";
+        {
+            // 圧縮データの場合、AI に「追加データを要求できる」ことを伝える
+            var compressionNotice = InsightCommon.AI.DocumentCompressor.ShouldCompress(docContent)
+                ? InsightCommon.AI.DocumentCompressor.GetCompressionNotice(isJa ? "ja" : "en")
+                : "";
+            prompt += $"\n\n--- {(isJa ? "現在のドキュメント内容" : "Current Document")} ---\n{compressionNotice}{docContent}\n--- ---";
+        }
 
         // 添付ファイルコンテキスト
         if (_chatAttachedFiles.Count > 0)
@@ -447,7 +594,44 @@ public partial class MainWindow : Window
                     {
                         var text = System.IO.File.ReadAllText(f.FullPath);
                         if (text.Length > 50000) text = text[..50000] + "\n...(truncated)";
-                        prompt += $"\n```\n{text}\n```\n";
+
+                        if (InsightCommon.AI.DocumentCompressor.ShouldCompress(text))
+                        {
+                            if (ext == ".csv")
+                            {
+                                // CSV: 行パース → CompressSpreadsheet で構造化圧縮
+                                var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                                var rows = lines.Select(line =>
+                                    line.TrimEnd('\r').Split(',').Select(c => c.Trim('"', ' ')).ToArray()
+                                ).ToList();
+                                var headerRow = rows.Count > 0 ? rows[0] : null;
+                                var colCount = rows.Count > 0 ? rows.Max(r => r.Length) : 0;
+                                text = InsightCommon.AI.DocumentCompressor.CompressSpreadsheet(
+                                    f.FileName, rows, rows.Count, colCount, headerRow);
+                            }
+                            else
+                            {
+                                // .txt/.md: 段落分割 → CompressDocument で構造化圧縮
+                                var paragraphs = text.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                                var sections = new System.Collections.Generic.List<InsightCommon.AI.DocumentCompressor.DocumentSection>
+                                {
+                                    new()
+                                    {
+                                        Heading = f.FileName,
+                                        TextContent = text,
+                                        Level = 1
+                                    }
+                                };
+                                var wordCount = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+                                text = InsightCommon.AI.DocumentCompressor.CompressDocument(
+                                    f.FileName, sections, paragraphs.Length, wordCount, totalPages: 1);
+                            }
+                            prompt += $"\n{text}\n";
+                        }
+                        else
+                        {
+                            prompt += $"\n```\n{text}\n```\n";
+                        }
                     }
                 }
                 catch { /* ignore read errors */ }
@@ -544,8 +728,8 @@ public partial class MainWindow : Window
         WelcomeTagline.Text = L("Welcome_Tagline");
         WelcomeOpenLabel.Text = L("Welcome_OpenLabel");
         WelcomeOpenDesc.Text = L("Welcome_OpenDesc");
-        WelcomeChatLabel.Text = L("Welcome_ChatLabel");
-        WelcomeChatDesc.Text = L("Welcome_ChatDescNew");
+        WelcomeViewArtifactsLabel.Text = L("Welcome_ViewArtifactsLabel");
+        WelcomeViewArtifactsDesc.Text = L("Welcome_ViewArtifactsDesc");
         WelcomeDragHint.Text = L("Welcome_DragHint");
 
         // Status bar

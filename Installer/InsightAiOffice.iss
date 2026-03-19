@@ -44,11 +44,11 @@ Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\HarmonicInsight\Insight AI Office"; ValueName: "InstallPath"; ValueType: string; ValueData: "{app}"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "SOFTWARE\HarmonicInsight\Insight AI Office"; ValueName: "Version"; ValueType: string; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "SOFTWARE\HarmonicInsight\Insight AI Office"; ValueName: "InstallPath"; ValueType: string; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "SOFTWARE\HarmonicInsight\Insight AI Office"; ValueName: "Version"; ValueType: string; ValueData: "{#MyAppVersion}"; Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent

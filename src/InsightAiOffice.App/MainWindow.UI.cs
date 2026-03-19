@@ -85,16 +85,83 @@ public partial class MainWindow
 
     private void UpdateChatToggleColor()
     {
-        var brush = _isRightPanelOpen
+        var brush = _isRightPanelOpen || _chatPopOutWindow != null
             ? (System.Windows.Media.Brush)FindResource("PrimaryBrush")
             : (System.Windows.Media.Brush)FindResource("TextSecondaryBrush");
         ChatToggleIcon.Foreground = brush;
         ChatToggleText.Foreground = brush;
     }
 
+    // ── Chat Panel Pop-Out ──────────────────────────────────────
+
+    private Window? _chatPopOutWindow;
+
+    private void PopOutChatPanel()
+    {
+        if (_chatPopOutWindow != null) return;
+
+        // サイドパネルからChatPanelを切り離す
+        _chatPanelParentGrid = ChatPanel.Parent as Grid;
+        _chatPanelParentGrid?.Children.Remove(ChatPanel);
+        RightPanelCol.Width = new GridLength(0);
+        RightPanelCol.MinWidth = 0;
+        _isRightPanelOpen = false;
+
+        // 別ウィンドウ作成
+        _chatPopOutWindow = new Window
+        {
+            Title = "AI コンシェルジュ",
+            Width = 420,
+            Height = 700,
+            MinWidth = 320,
+            MinHeight = 400,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Content = ChatPanel,
+            ShowInTaskbar = true,
+        };
+
+        // メインウィンドウの右側に配置
+        _chatPopOutWindow.Left = Left + Width + 8;
+        _chatPopOutWindow.Top = Top;
+        var screen = SystemParameters.WorkArea;
+        if (_chatPopOutWindow.Left + _chatPopOutWindow.Width > screen.Right)
+            _chatPopOutWindow.Left = Left - _chatPopOutWindow.Width - 8;
+
+        _chatPopOutWindow.Closed += (_, _) => PopInChatPanel();
+        _chatPopOutWindow.Show();
+        UpdateChatToggleColor();
+    }
+
+    private Grid? _chatPanelParentGrid;
+
+    private void PopInChatPanel()
+    {
+        if (_chatPopOutWindow == null) return;
+
+        // ウィンドウからChatPanelを切り離す
+        _chatPopOutWindow.Content = null;
+        _chatPopOutWindow = null;
+
+        // メインウィンドウに戻す
+        if (_chatPanelParentGrid != null && !_chatPanelParentGrid.Children.Contains(ChatPanel))
+        {
+            Grid.SetColumn(ChatPanel, 2);
+            _chatPanelParentGrid.Children.Add(ChatPanel);
+        }
+
+        // パネルを開いた状態で復元
+        RightPanelCol.Width = new GridLength(380);
+        RightPanelCol.MinWidth = 200;
+        _isRightPanelOpen = true;
+        UpdateChatToggleColor();
+    }
+
     private void ChatPromptEditor_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new Views.PromptEditorDialog(_presetService, _chatVm.AiService.Config) { Owner = this };
+        // 組織プリセットは TRIAL / ENT のみ（BIZ は対象外）。未設定時は有効（開発中）
+        var plan = _licenseManager?.CurrentLicense.Plan;
+        var isEnt = plan is null or InsightCommon.License.PlanCode.Trial or InsightCommon.License.PlanCode.Ent;
+        var dialog = new Views.PromptEditorDialog(_presetService, _chatVm.AiService.Config, isEnterprise: isEnt) { Owner = this };
         dialog.ShowDialog();
 
         if (dialog.HasChanges)
@@ -106,10 +173,8 @@ public partial class MainWindow
             if (!_isRightPanelOpen)
                 ToggleRightPanel();
 
-            // プロンプトをセットして即AI実行
+            // プロンプトをチャット入力欄にセット（即実行しない — 添付ファイルを追加できるようにする）
             _chatVm.AiInput = dialog.ExecutePromptText;
-            if (_chatVm.ExecuteFromInputCommand.CanExecute(null))
-                _chatVm.ExecuteFromInputCommand.Execute(null);
         }
     }
 
@@ -135,6 +200,12 @@ public partial class MainWindow
     private void WelcomeChat_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (!_isRightPanelOpen) ToggleRightPanel();
+    }
+
+    private void WelcomeViewArtifacts_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        UpdateArtifactDir();
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_artifactDir) { UseShellExecute = true });
     }
 
     private void WelcomeRecentFile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)

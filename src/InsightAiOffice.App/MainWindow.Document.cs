@@ -152,6 +152,11 @@ public partial class MainWindow
             TextEditor.Text = content;
             _textOriginal = content;
             _textDirty = false;
+
+            // Markdown モード判定
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
+            SetMarkdownMode(ext == ".md");
+
             StatusText.Text = Helpers.LanguageManager.Format("Doc_Loaded", displayName);
         }
         catch (Exception ex)
@@ -316,6 +321,205 @@ public partial class MainWindow
         }
     }
 
+    // ── DrillDown: AI が詳細範囲を要求した場合のデータ抽出 ─────────
+
+    /// <summary>
+    /// 圧縮されたドキュメントデータの特定範囲を非圧縮で返す。
+    /// get_document_detail ツールのバックエンド実装。
+    /// </summary>
+    internal string ExtractDocumentDetailRange(string rangeType, int start, int end)
+    {
+        try
+        {
+            return rangeType switch
+            {
+                "rows" => ExtractExcelDetailRows(start, end),
+                "section" => ExtractWordDetailSections(start, end),
+                "slides" => ExtractPptxDetailSlides(start, end),
+                "pages" => ExtractPdfDetailPages(start, end),
+                _ => $"[エラー] 不明な range_type: {rangeType}。rows / section / slides / pages のいずれかを指定してください。"
+            };
+        }
+        catch (Exception ex)
+        {
+            return $"[詳細データ取得エラー: {ex.Message}]";
+        }
+    }
+
+    private string ExtractExcelDetailRows(int startRow, int endRow)
+    {
+        var ws = Spreadsheet?.ActiveSheet;
+        if (ws == null) return "(Excel シートが開かれていません)";
+
+        var usedRange = ws.UsedRange;
+        if (usedRange == null) return "(空のシート)";
+
+        var maxCols = Math.Min(usedRange.LastColumn, usedRange.Column + 25);
+
+        // ヘッダー行を取得
+        string[]? headerRow = null;
+        {
+            var hCells = new List<string>();
+            for (int c = usedRange.Column; c <= maxCols; c++)
+                hCells.Add(ws.Range[usedRange.Row, c].DisplayText ?? "");
+            headerRow = hCells.ToArray();
+        }
+
+        // 全行を読み取り
+        var allRows = new List<string[]>();
+        for (int r = usedRange.Row; r <= usedRange.LastRow; r++)
+        {
+            var cells = new List<string>();
+            for (int c = usedRange.Column; c <= maxCols; c++)
+                cells.Add(ws.Range[r, c].DisplayText ?? "");
+            allRows.Add(cells.ToArray());
+        }
+
+        return InsightCommon.AI.DocumentCompressor.GetDetailRows(allRows, headerRow, startRow, endRow);
+    }
+
+    private string ExtractWordDetailSections(int startSection, int endSection)
+    {
+        var doc = RichTextEditor?.Document;
+        if (doc == null) return "(Word ドキュメントが開かれていません)";
+
+        using var ms = new MemoryStream();
+        RichTextEditor.Save(ms, FormatType.Txt);
+        ms.Position = 0;
+        using var reader = new StreamReader(ms);
+        var fullText = reader.ReadToEnd();
+
+        var paragraphs = fullText.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+        var sections = new List<InsightCommon.AI.DocumentCompressor.DocumentSection>();
+        var currentSection = new InsightCommon.AI.DocumentCompressor.DocumentSection { Heading = "本文", Level = 1 };
+        var sectionText = new StringBuilder();
+
+        foreach (var para in paragraphs)
+        {
+            var trimmed = para.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            if (trimmed.Length < 60 && (
+                System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^(第[0-9０-９一-九]+[章節条項]|[0-9]+[\.\s]|[IVX]+[\.\s])") ||
+                trimmed.StartsWith("■") || trimmed.StartsWith("●") || trimmed.StartsWith("◆")))
+            {
+                if (sectionText.Length > 0)
+                {
+                    currentSection.TextContent = sectionText.ToString();
+                    sections.Add(currentSection);
+                }
+                currentSection = new InsightCommon.AI.DocumentCompressor.DocumentSection { Heading = trimmed, Level = 1 };
+                sectionText.Clear();
+            }
+            else
+            {
+                sectionText.AppendLine(trimmed);
+            }
+        }
+        if (sectionText.Length > 0)
+        {
+            currentSection.TextContent = sectionText.ToString();
+            sections.Add(currentSection);
+        }
+
+        return InsightCommon.AI.DocumentCompressor.GetDetailSections(sections, startSection, endSection);
+    }
+
+    private string ExtractPptxDetailSlides(int startSlide, int endSlide)
+    {
+        if (string.IsNullOrEmpty(_currentDocPath) || !File.Exists(_currentDocPath))
+            return "(PPTX ファイルが開かれていません)";
+
+        try
+        {
+            using var doc = DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(_currentDocPath, false);
+            var presPart = doc.PresentationPart;
+            if (presPart == null) return "(プレゼンテーションが空です)";
+
+            var slides = new List<InsightCommon.AI.DocumentCompressor.SlideInfo>();
+            var slideIndex = 0;
+
+            foreach (var slideId in presPart.Presentation.SlideIdList?.ChildElements
+                         .OfType<DocumentFormat.OpenXml.Presentation.SlideId>() ?? [])
+            {
+                slideIndex++;
+                var slidePart = (DocumentFormat.OpenXml.Packaging.SlidePart)presPart.GetPartById(slideId.RelationshipId!);
+
+                var textParts = new List<string>();
+                string title = "";
+
+                foreach (var textBody in slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.TextBody>())
+                {
+                    foreach (var para in textBody.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>())
+                    {
+                        var text = string.Concat(para.Descendants<DocumentFormat.OpenXml.Drawing.Text>().Select(t => t.Text));
+                        if (!string.IsNullOrWhiteSpace(text))
+                        {
+                            textParts.Add(text.Trim());
+                            if (string.IsNullOrEmpty(title)) title = text.Trim();
+                        }
+                    }
+                }
+
+                var notes = "";
+                if (slidePart.NotesSlidePart != null)
+                {
+                    var noteTexts = new List<string>();
+                    foreach (var textBody in slidePart.NotesSlidePart.NotesSlide
+                                 .Descendants<DocumentFormat.OpenXml.Drawing.TextBody>())
+                    {
+                        foreach (var para in textBody.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>())
+                        {
+                            var text = string.Concat(para.Descendants<DocumentFormat.OpenXml.Drawing.Text>().Select(t => t.Text));
+                            if (!string.IsNullOrWhiteSpace(text))
+                                noteTexts.Add(text.Trim());
+                        }
+                    }
+                    notes = string.Join(" ", noteTexts);
+                }
+
+                slides.Add(new InsightCommon.AI.DocumentCompressor.SlideInfo
+                {
+                    Number = slideIndex,
+                    Title = title,
+                    FullText = string.Join("\n", textParts),
+                    Notes = notes
+                });
+            }
+
+            return InsightCommon.AI.DocumentCompressor.GetDetailSlides(slides, startSlide, endSlide);
+        }
+        catch (Exception ex)
+        {
+            return $"[PPTX 詳細取得エラー: {ex.Message}]";
+        }
+    }
+
+    private string ExtractPdfDetailPages(int startPage, int endPage)
+    {
+        try
+        {
+            var doc = PdfViewer?.LoadedDocument;
+            if (doc == null) return "(PDF が開かれていません)";
+
+            var pages = new List<InsightCommon.AI.DocumentCompressor.PageInfo>();
+            for (int i = 0; i < doc.Pages.Count; i++)
+            {
+                pages.Add(new InsightCommon.AI.DocumentCompressor.PageInfo
+                {
+                    Number = i + 1,
+                    Text = doc.Pages[i].ExtractText() ?? ""
+                });
+            }
+
+            return InsightCommon.AI.DocumentCompressor.GetDetailPages(pages, startPage, endPage);
+        }
+        catch (Exception ex)
+        {
+            return $"[PDF 詳細取得エラー: {ex.Message}]";
+        }
+    }
+
     // ── Document Content Extraction (for AI) ──────────────────────
 
     private string ExtractDocumentContent()
@@ -343,46 +547,153 @@ public partial class MainWindow
         var doc = RichTextEditor.Document;
         if (doc == null) return "";
 
+        // テキスト全文を取得
         using var ms = new MemoryStream();
         RichTextEditor.Save(ms, FormatType.Txt);
         ms.Position = 0;
         using var reader = new StreamReader(ms);
-        var text = reader.ReadToEnd();
+        var fullText = reader.ReadToEnd();
 
-        if (text.Length > 8000)
-            text = text[..8000] + "\n\n[...以降省略...]";
+        // 小さい文書（推定2000トークン以下）は全文を返す
+        if (!InsightCommon.AI.DocumentCompressor.ShouldCompress(fullText))
+            return fullText;
 
-        return text;
+        // 構造化圧縮: 段落を分割してセクション化
+        var paragraphs = fullText.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+        var sections = new List<InsightCommon.AI.DocumentCompressor.DocumentSection>();
+        var currentSection = new InsightCommon.AI.DocumentCompressor.DocumentSection
+        {
+            Heading = "本文",
+            Level = 1
+        };
+        var sectionText = new StringBuilder();
+
+        foreach (var para in paragraphs)
+        {
+            var trimmed = para.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            // 見出しらしい行を検出（複数パターン対応）
+            // - 日本語: 第N章/節/条/項、N. 見出し
+            // - 記号系: ■●◆▼▶◇★☆►、全角数字、丸数字
+            // - 英語: I. II. III. 1. 2. A) B) Chapter N Section N
+            // - Markdown: # ## ###
+            // - 短い行で次の段落と明確に分離されている
+            var isHeading = trimmed.Length < 80 && (
+                System.Text.RegularExpressions.Regex.IsMatch(trimmed,
+                    @"^(第[0-9０-９一二三四五六七八九十百]+[章節条項款号]|[0-9]+[\.\s\)）]|[０-９]+[\.\s]|[IVXivx]+[\.\s\)]|[A-Z][\.\)）]\s)") ||
+                System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^#{1,3}\s") || // Markdown 見出し
+                System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^[①-⑳⑴-⒇]\s*") || // 丸数字
+                System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^(Chapter|Section|Part|CHAPTER|SECTION)\s+\d", System.Text.RegularExpressions.RegexOptions.IgnoreCase) ||
+                "■●◆▼▶◇★☆►【〔".Contains(trimmed[0]));
+            if (isHeading)
+            {
+                // 前のセクションを保存
+                if (sectionText.Length > 0)
+                {
+                    currentSection.TextContent = sectionText.ToString();
+                    sections.Add(currentSection);
+                }
+                currentSection = new InsightCommon.AI.DocumentCompressor.DocumentSection
+                {
+                    Heading = trimmed,
+                    Level = 1
+                };
+                sectionText.Clear();
+            }
+            else
+            {
+                sectionText.AppendLine(trimmed);
+            }
+        }
+        // 最後のセクション
+        if (sectionText.Length > 0)
+        {
+            currentSection.TextContent = sectionText.ToString();
+            sections.Add(currentSection);
+        }
+
+        // セクションが1つだけなら見出し検出できなかった → 段落分割で圧縮
+        if (sections.Count <= 1)
+        {
+            sections.Clear();
+            var chunkSize = paragraphs.Length / Math.Max(1, paragraphs.Length / 10);
+            for (int i = 0; i < paragraphs.Length; i += Math.Max(1, chunkSize))
+            {
+                var chunk = string.Join("\n", paragraphs.Skip(i).Take(chunkSize));
+                sections.Add(new InsightCommon.AI.DocumentCompressor.DocumentSection
+                {
+                    Heading = $"パート {sections.Count + 1}",
+                    TextContent = chunk,
+                    Level = 1
+                });
+            }
+        }
+
+        var fileName = System.IO.Path.GetFileName(_currentDocPath ?? "document.docx");
+        var wordCount = fullText.Split(new[] { ' ', '\n', '\r', '　' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        var pageEstimate = Math.Max(1, wordCount / 400); // 概算
+
+        return InsightCommon.AI.DocumentCompressor.CompressDocument(
+            fileName, sections, paragraphs.Length, wordCount, pageEstimate);
     }
 
     private string ExtractExcelContent()
     {
-        var ws = Spreadsheet?.ActiveSheet;
-        if (ws == null) return "";
+        if (Spreadsheet?.Workbook == null) return "";
 
-        var lines = new StringBuilder();
-        var usedRange = ws.UsedRange;
-        if (usedRange == null) return "";
+        var sb = new StringBuilder();
+        var worksheets = Spreadsheet.Workbook.Worksheets;
+        var activeSheetName = Spreadsheet.ActiveSheet?.Name;
 
-        var maxRows = Math.Min(usedRange.LastRow, 100);
-        var maxCols = Math.Min(usedRange.LastColumn, 20);
-
-        for (int r = usedRange.Row; r <= maxRows; r++)
+        // 全シートの概要を先に表示
+        sb.AppendLine($"【ブック構成】シート数: {worksheets.Count}, アクティブ: {activeSheetName ?? "N/A"}");
+        for (int s = 0; s < worksheets.Count; s++)
         {
-            var cells = new List<string>();
-            for (int c = usedRange.Column; c <= maxCols; c++)
+            var sheet = worksheets[s];
+            var usedRange = sheet.UsedRange;
+            var rows = usedRange != null ? usedRange.LastRow - usedRange.Row + 1 : 0;
+            var cols = usedRange != null ? usedRange.LastColumn - usedRange.Column + 1 : 0;
+            var marker = sheet.Name == activeSheetName ? " ★" : "";
+            sb.AppendLine($"  {s + 1}. {sheet.Name} ({rows}行×{cols}列){marker}");
+        }
+        sb.AppendLine();
+
+        // 各シートを構造化圧縮
+        for (int s = 0; s < worksheets.Count; s++)
+        {
+            var ws = worksheets[s];
+            var usedRange = ws.UsedRange;
+            if (usedRange == null) continue;
+
+            var totalRows = usedRange.LastRow - usedRange.Row + 1;
+            var totalCols = usedRange.LastColumn - usedRange.Column + 1;
+            if (totalRows <= 0 || totalCols <= 0) continue;
+
+            var maxRows = Math.Min(usedRange.LastRow, usedRange.Row + 500);
+            var maxCols = Math.Min(usedRange.LastColumn, usedRange.Column + 25);
+
+            var rows = new List<string[]>();
+            string[]? headerRow = null;
+            for (int r = usedRange.Row; r <= maxRows; r++)
             {
-                var val = ws.Range[r, c].DisplayText ?? "";
-                cells.Add(val);
+                var cells = new List<string>();
+                for (int c = usedRange.Column; c <= maxCols; c++)
+                {
+                    var val = ws.Range[r, c].DisplayText ?? "";
+                    cells.Add(val);
+                }
+                var row = cells.ToArray();
+                if (r == usedRange.Row) headerRow = row;
+                rows.Add(row);
             }
-            lines.AppendLine(string.Join("\t", cells));
+
+            sb.AppendLine(InsightCommon.AI.DocumentCompressor.CompressSpreadsheet(
+                ws.Name ?? $"Sheet{s + 1}", rows, totalRows, totalCols, headerRow));
+            sb.AppendLine();
         }
 
-        var text = lines.ToString();
-        if (text.Length > 8000)
-            text = text[..8000] + "\n\n[...以降省略...]";
-
-        return text;
+        return sb.ToString();
     }
 
     private static string ExtractPptxContent(string filePath)
@@ -395,7 +706,7 @@ public partial class MainWindow
             var presPart = doc.PresentationPart;
             if (presPart == null) return "";
 
-            var sb = new StringBuilder();
+            var slides = new List<InsightCommon.AI.DocumentCompressor.SlideInfo>();
             var slideIndex = 0;
 
             foreach (var slideId in presPart.Presentation.SlideIdList?.ChildElements
@@ -403,7 +714,9 @@ public partial class MainWindow
             {
                 slideIndex++;
                 var slidePart = (DocumentFormat.OpenXml.Packaging.SlidePart)presPart.GetPartById(slideId.RelationshipId!);
-                sb.AppendLine($"--- スライド {slideIndex} ---");
+
+                var textParts = new List<string>();
+                string title = "";
 
                 foreach (var textBody in slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.TextBody>())
                 {
@@ -411,12 +724,18 @@ public partial class MainWindow
                     {
                         var text = string.Concat(para.Descendants<DocumentFormat.OpenXml.Drawing.Text>().Select(t => t.Text));
                         if (!string.IsNullOrWhiteSpace(text))
-                            sb.AppendLine(text.Trim());
+                        {
+                            textParts.Add(text.Trim());
+                            // 最初のテキストをタイトルとみなす
+                            if (string.IsNullOrEmpty(title)) title = text.Trim();
+                        }
                     }
                 }
 
+                var notes = "";
                 if (slidePart.NotesSlidePart != null)
                 {
+                    var noteTexts = new List<string>();
                     foreach (var textBody in slidePart.NotesSlidePart.NotesSlide
                                  .Descendants<DocumentFormat.OpenXml.Drawing.TextBody>())
                     {
@@ -424,19 +743,24 @@ public partial class MainWindow
                         {
                             var text = string.Concat(para.Descendants<DocumentFormat.OpenXml.Drawing.Text>().Select(t => t.Text));
                             if (!string.IsNullOrWhiteSpace(text))
-                                sb.AppendLine($"[ノート] {text.Trim()}");
+                                noteTexts.Add(text.Trim());
                         }
                     }
+                    notes = string.Join(" ", noteTexts);
                 }
 
-                sb.AppendLine();
+                slides.Add(new InsightCommon.AI.DocumentCompressor.SlideInfo
+                {
+                    Number = slideIndex,
+                    Title = title,
+                    FullText = string.Join("\n", textParts),
+                    Notes = notes
+                });
             }
 
-            var result = sb.ToString();
-            if (result.Length > 8000)
-                result = result[..8000] + "\n\n[...以降省略...]";
-
-            return result;
+            // 構造化圧縮
+            var fileName = Path.GetFileName(filePath);
+            return InsightCommon.AI.DocumentCompressor.CompressPresentation(fileName, slides);
         }
         catch (Exception ex)
         {
@@ -451,21 +775,19 @@ public partial class MainWindow
             var doc = PdfViewer.LoadedDocument;
             if (doc == null) return "";
 
-            var sb = new StringBuilder();
-            var pageCount = doc.Pages.Count;
-            for (int i = 0; i < pageCount; i++)
+            var pages = new List<InsightCommon.AI.DocumentCompressor.PageInfo>();
+            for (int i = 0; i < doc.Pages.Count; i++)
             {
-                sb.AppendLine($"--- ページ {i + 1} ---");
                 var page = doc.Pages[i];
-                sb.AppendLine(page.ExtractText());
-                sb.AppendLine();
+                pages.Add(new InsightCommon.AI.DocumentCompressor.PageInfo
+                {
+                    Number = i + 1,
+                    Text = page.ExtractText() ?? ""
+                });
             }
 
-            var text = sb.ToString();
-            if (text.Length > 8000)
-                text = text[..8000] + "\n\n[...以降省略...]";
-
-            return text;
+            var fileName = Path.GetFileName(_currentDocPath ?? "document.pdf");
+            return InsightCommon.AI.DocumentCompressor.CompressPdf(fileName, pages);
         }
         catch (Exception ex)
         {
